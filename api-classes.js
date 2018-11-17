@@ -201,12 +201,14 @@ class Story {
   }
 }
 
-let domView = {
-  storyList: [],
-  user: new User(),
+class DomView {
+  constructor() {
+    this.storyList = [];
+    this.user = new User();
+  }
 
   // data get all Stories
-  displayAllStories: function() {
+  displayAllStories() {
     // delete all existing stories in order to re-render page
     $('#stories').empty();
     StoryList.getStories(storyList => {
@@ -217,10 +219,10 @@ let domView = {
         this.displaySingleStory(storyObj);
       });
     });
-  },
+  }
 
   // do all things related to creating a favorites page view
-  displayFavoriteStories: function() {
+  displayFavoriteStories() {
     // delete all existing stories in order to re-render page
     $('#stories').empty();
 
@@ -228,10 +230,10 @@ let domView = {
     this.user.favorites.forEach(storyObj => {
       this.displaySingleStory(storyObj);
     });
-  },
+  }
 
   // return false if story is not found in user's ownStories ArraY, other true
-  isUserOwnedStory: function(targetStoryId) {
+  isUserOwnedStory(targetStoryId) {
     // if user is not defined yet, return false
     if (this.user.name === undefined) {
       return false;
@@ -246,9 +248,9 @@ let domView = {
       return false;
     }
     return true;
-  },
+  }
 
-  displaySingleStory: function(storyObj) {
+  displaySingleStory(storyObj) {
     // this will then create jquery div container for one story with all details
     let $newLink = $('<a>', {
       text: `random`,
@@ -309,9 +311,9 @@ let domView = {
             .addClass('story--detail')
         )
     );
-  },
+  }
 
-  loginUserSubmission: function() {
+  loginUserSubmission() {
     event.preventDefault();
     const usernameInput = $('#username').val();
     const passwordInput = $('#password').val();
@@ -334,10 +336,10 @@ let domView = {
         });
       });
     });
-  },
+  }
 
   // Logic to check if a token exists / User is logged in
-  checkForLoggedUser: function(cb) {
+  checkForLoggedUser(cb) {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
 
@@ -431,9 +433,9 @@ let domView = {
       );
       return cb();
     }
-  },
+  }
 
-  createUserSub: function(event) {
+  createUserSub(event) {
     event.preventDefault();
 
     // grab values from forms
@@ -448,9 +450,9 @@ let domView = {
         this.displayAllStories();
       });
     });
-  },
+  }
 
-  addNewStory: function(event) {
+  addNewStory(event) {
     event.preventDefault();
 
     // grab values from forms
@@ -471,10 +473,10 @@ let domView = {
         this.displayAllStories();
       });
     });
-  },
+  }
 
   // returns true or false - checks if storyID is in user Favorites
-  isStoryInUserFavorites: function(targetStoryId) {
+  isStoryInUserFavorites(targetStoryId) {
     // if user is not defined yet, return false
     if (this.user.name === undefined) {
       return false;
@@ -490,11 +492,9 @@ let domView = {
       return false;
     }
     return true;
-  },
+  }
 
-  // update(userData, cb)
-
-  updateUserProfile: function() {
+  updateUserProfile() {
     // grab the values from the form
 
     const name = $('#updateprofile-displayname').val();
@@ -516,9 +516,9 @@ let domView = {
 
     // TODO future: if you show username/name details in the stories, have to re-render stories
     // TODO future: confirm old password to create new password - on file
-  },
+  }
 
-  createEventListeners: function() {
+  createEventListeners() {
     // event listener - crete user submission
     $('#createuser-form').on('submit', this.createUserSub.bind(this));
 
@@ -605,11 +605,12 @@ let domView = {
       }
     });
   }
-};
+}
 
 // Wait for DOM-Onload for jQuery
 $(function() {
   // check for logged in user, then display all user stories
+  const domView = new DomView();
   domView.checkForLoggedUser(() => {
     domView.displayAllStories();
   });
