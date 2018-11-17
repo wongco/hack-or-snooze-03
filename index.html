@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootswatch/4.1.3/united/bootstrap.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body class="container">
+    <nav class="navbar navbar-expand-lg">
+      <span class="navbar-brand"> <b>Hack or Snooze</b> </span>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarText"
+        aria-controls="navbarText"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarText">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a href="javascript:void(0)" class="nav-link" id="submit"
+              >add story</a
+            >
+          </li>
+          <li class="nav-item">
+            <a href="javascript:void(0)" class="nav-link" id="favorites"
+              >favorites</a
+            >
+          </li>
+        </ul>
+        <span id="loginContainer"></span>
+      </div>
+    </nav>
+
+    <!-- --------------- Add Story Link Form ------------ -->
+    <div id="new-form">
+      <form class="form-horizontal">
+        <div class="form-group row">
+          <label for="title" class="pl-4 col-sm-1 form-label">title</label>
+          <div class="col-sm-6">
+            <input
+              required
+              type="text"
+              class="form-control"
+              id="title"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="url" class="pl-4 col-sm-1 form-label">url</label>
+          <div class="col-sm-6">
+            <input
+              required
+              type="url"
+              class="form-control"
+              id="url"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-primary">submit story</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- --------------- Create New User Form ------------ -->
+    <div id="createuser-form">
+      <form class="form-horizontal">
+        <div class="form-group row">
+          <label for="create-displayname" class="pl-4 col-sm-2 form-label"
+            >Display Name</label
+          >
+          <div class="col-sm-6">
+            <input
+              required
+              type="text"
+              class="form-control"
+              id="create-displayname"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="createuser-username" class="pl-4 col-sm-2 form-label"
+            >Username</label
+          >
+          <div class="col-sm-6">
+            <input
+              required
+              type="text"
+              class="form-control"
+              id="create-username"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="create-password" class="pl-4 col-sm-2 form-label"
+            >Password</label
+          >
+          <div class="col-sm-6">
+            <input
+              required
+              type="password"
+              class="form-control"
+              id="create-password"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- --------------- Profile User Form ------------ -->
+    <div id="updateprofile-form">
+      <form class="form-horizontal">
+        <div class="form-group row">
+          <label for="updateprofile-username" class="pl-4 col-sm-2 form-label"
+            >Username</label
+          >
+          <div class="col-sm-6">
+            <input
+              readonly
+              type="text"
+              class="form-control"
+              id="updateprofile-username"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="form-group row">
+          <label
+            for="updateprofile-displayname"
+            class="pl-4 col-sm-2 form-label"
+            >Display Name</label
+          >
+          <div class="col-sm-6">
+            <input
+              required
+              type="text"
+              class="form-control"
+              id="updateprofile-displayname"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="updateprofile-password" class="pl-4 col-sm-2 form-label"
+            >Password</label
+          >
+          <div class="col-sm-6">
+            <input
+              required
+              type="password"
+              class="form-control"
+              id="updateprofile-password"
+              autocomplete="off"
+              placeholder="enter new password"
+            />
+            <!-- Potentially add another field to confirm password -->
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-primary">
+              Update Profile
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <ol id="stories">
+      <!--
+        <li id="234734908284093284092384092">
+          <div class="story--header">
+            <span class="far fa-star"></span>
+            <a target="_blank" href="https://visualgo.net/">Visualizing Algorithms</a>
+            <small>(visualgo.net)</small>
+          </div>
+          <div class="story--detail">
+            <span class="hidden">
+            <a href="#">Delete Story</a>
+            </span>
+            <span class="hackorsnoozedetails">
+            </span>
+          </div>
+        </li>
+      -->
+    </ol>
+
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.js"
+      integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="app.js"></script>
+    <script src="api-classes.js"></script>
+  </body>
+</html>
