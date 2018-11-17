@@ -1,53 +1,55 @@
-const BASE_URL = 'https://hack-or-snooze-v2.herokuapp.com';
+const API_BASE_URL = 'https://hack-or-snooze-v2.herokuapp.com';
 
+/* instances contain a recent list a stories with methods to download, add & remove*/
 class StoryList {
   constructor(stories) {
     this.stories = stories;
   }
 
-  // current no limit - 25 stories max per request
+  // downloads most recent 25 stories from api to local StoryList instance
   static getStories(cb) {
-    $.getJSON(`${BASE_URL}/stories`, function(response) {
-      const stories = response.stories.map(function(story) {
+    $.getJSON(`${API_BASE_URL}/stories`, apiResponse => {
+      const stories = apiResponse.stories.map(story => {
         const { author, title, url, username, storyId } = story;
-
         return new Story(author, title, url, username, storyId);
       });
 
       const storyList = new StoryList(stories);
-      return cb(storyList);
+      return cb(storyList); // return new storyList instance to callback
     });
   }
 
+  // method to initiate api call to add a new story
   addStory(user, story, cb) {
-    const postPayload = { token: user.loginToken, story };
+    const postDataObj = { token: user.loginToken, story };
 
-    $.post(`${BASE_URL}/stories`, postPayload, response => {
-      user.retrieveDetails(function() {
-        return cb(response);
-      });
+    $.post(`${API_BASE_URL}/stories`, postDataObj, apiResponse => {
+      user.retrieveDetails(() => cb(apiResponse));
     });
   }
 
+  // method to initiate api call to remove a story, then syncs api user details with local user
   removeStory(user, storyId, cb) {
-    let deletePayload = { token: user.loginToken };
+    const deleteDataObj = { token: user.loginToken };
 
     $.ajax({
-      url: `${BASE_URL}/stories/${storyId}`,
+      url: `${API_BASE_URL}/stories/${storyId}`,
       method: 'DELETE',
-      data: deletePayload,
-      success: response => {
+      data: deleteDataObj,
+      success: apiResponse => {
+        // find index of story to remove from local instance of StoryList
         const storyIndex = this.stories.findIndex(
           story => story.storyId === storyId
         );
-
+        // removes story from local instance
         this.stories.splice(storyIndex, 1);
-        user.retrieveDetails(() => cb(response));
+        user.retrieveDetails(() => cb(apiResponse));
       }
     });
   }
 }
 
+/* instance contains all User details including token, favorited and authored stories */
 class User {
   constructor(username, password, name, loginToken, favorites, ownStories) {
     this.username = username;
@@ -58,8 +60,9 @@ class User {
     this.ownStories = ownStories;
   }
 
+  // static function that send a create new user request to API and returns new user to callback
   static create(username, password, name, cb) {
-    let userObj = {
+    const userDataObj = {
       user: {
         name,
         username,
@@ -67,117 +70,128 @@ class User {
       }
     };
 
-    $.post(`${BASE_URL}/signup`, userObj, response => {
-      const { username, name, favorites, stories } = response.user;
-      const token = response.token;
+    $.post(`${API_BASE_URL}/signup`, userDataObj, apiResponse => {
+      const { username, name, favorites, stories } = apiResponse.user;
 
-      localStorage.setItem('token', token);
+      // items to save to localStorage to check for logged in user
+      localStorage.setItem('token', apiResponse.token);
       localStorage.setItem('username', username);
 
-      let user = new User(username, password, name, token, favorites, stories);
-
+      const user = new User(
+        username,
+        password,
+        name,
+        apiResponse.token,
+        favorites,
+        stories
+      );
       return cb(user);
     });
   }
 
+  // method for API request to log the user in and retrieves user token
   login(cb) {
-    let loginObj = {
+    let loginDataObj = {
       user: {
         username: this.username,
         password: this.password
       }
     };
-    $.post(`${BASE_URL}/login`, loginObj, response => {
-      this.loginToken = response.token;
-      localStorage.setItem('token', response.token);
+    $.post(`${API_BASE_URL}/login`, loginDataObj, apiResponse => {
+      this.loginToken = apiResponse.token;
+
+      // store items in local storage
+      localStorage.setItem('token', apiResponse.token);
       localStorage.setItem('username', this.username);
-      return cb(response);
+      return cb(apiResponse);
     });
   }
 
+  // make a request to the API to get updated info about a single user incl favs and own stories
   retrieveDetails(cb) {
-    $.get(
-      `${BASE_URL}/users/${this.username}`,
-      {
-        token: this.loginToken
-      },
-      response => {
-        this.name = response.user.name;
-        this.favorites = response.user.favorites;
-        this.ownStories = response.user.stories;
+    const getDataObj = {
+      token: this.loginToken
+    };
 
-        this.ownStories = response.user.stories.map(story => {
-          const { username, title, author, url, storyId } = story;
+    $.get(`${API_BASE_URL}/users/${this.username}`, getDataObj, apiResponse => {
+      this.name = apiResponse.user.name;
+      this.favorites = apiResponse.user.favorites;
+      this.ownStories = apiResponse.user.stories;
 
-          return new Story(username, title, author, url, storyId);
-        });
+      // takes api response stories and maps them into Story instances
+      this.ownStories = apiResponse.user.stories.map(story => {
+        const { username, title, author, url, storyId } = story;
+        return new Story(username, title, author, url, storyId);
+      });
 
-        return cb(this);
-      }
-    );
+      return cb(this); // callback returns user instance
+    });
   }
 
+  // make an API request to add a story to the user’s favorites
   addFavorite(storyId, cb) {
-    let tokenPayload = {
+    const postDataObj = {
       token: this.loginToken
     };
 
     $.post(
-      `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
-      tokenPayload,
-      response => {
-        this.retrieveDetails(() => cb(response));
+      `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      postDataObj,
+      apiResponse => {
+        this.retrieveDetails(() => cb(apiResponse)); // returns api response to callback
       }
     );
   }
 
+  // make an API request to remove a story to the user’s favorites
   removeFavorite(storyId, cb) {
-    let tokenPayload = {
+    let deleteDataObj = {
       token: this.loginToken
     };
 
     $.ajax({
-      url: `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      url: `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
       method: 'DELETE',
-      data: tokenPayload,
-      success: response => {
-        this.retrieveDetails(() => cb(response));
+      data: deleteDataObj,
+      success: apiResponse => {
+        this.retrieveDetails(() => cb(apiResponse)); // returns api response to callback
       }
     });
   }
 
+  // make an API request to update a story
   update(userData, cb) {
-    let patchPayload = {
+    const patchDataObj = {
       token: this.loginToken,
       user: userData
     };
 
     $.ajax({
-      url: `${BASE_URL}/users/${this.username}`,
+      url: `${API_BASE_URL}/users/${this.username}`,
       method: 'PATCH',
-      data: patchPayload,
-      success: response => {
-        this.retrieveDetails(() => cb(response));
+      data: patchDataObj,
+      success: apiResponse => {
+        this.retrieveDetails(() => cb(apiResponse)); // returns apiResponse to callback
       }
     });
   }
 
+  // make an API request to remove a user
   remove(cb) {
-    let deletePayload = {
+    const deleteDataObj = {
       token: this.loginToken
     };
 
     $.ajax({
-      url: `${BASE_URL}/users/${this.username}`,
+      url: `${API_BASE_URL}/users/${this.username}`,
       method: 'DELETE',
-      data: deletePayload,
-      success: response => {
-        cb(response);
-      }
+      data: deleteDataObj,
+      success: apiResponse => cb(apiResponse) // returns apiResponse to callback
     });
   }
 }
 
+/* instance contains all story details including author, story id, url, and etc */
 class Story {
   constructor(author, title, url, username, storyId) {
     this.author = author;
@@ -187,101 +201,81 @@ class Story {
     this.storyId = storyId;
   }
 
+  // make an API request to update a story
   update(user, storyData, cb) {
-    let patchPayload = { token: user.loginToken, story: storyData };
+    let patchDataObj = { token: user.loginToken, story: storyData };
 
     $.ajax({
-      url: `${BASE_URL}/stories/${this.storyId}`,
+      url: `${API_BASE_URL}/stories/${this.storyId}`,
       method: 'PATCH',
-      data: patchPayload,
-      success: response => {
-        user.retrieveDetails(() => cb(response));
-      }
+      data: patchDataObj,
+      success: apiResponse => user.retrieveDetails(() => cb(apiResponse))
+      // returns apiResponse to callback
     });
   }
 }
 
+/* instance contains all Dom related display items and methods */
 class DomView {
   constructor() {
     this.storyList = [];
     this.user = new User();
   }
 
-  // data get all Stories
+  // calls getStories and displays most recent list of stories to DOM
   displayAllStories() {
-    // delete all existing stories in order to re-render page
+    // delete all existing stories in parent container
     $('#stories').empty();
+
     StoryList.getStories(storyList => {
       this.storyList = storyList;
 
-      // we have the stories, loop over all stories
+      // we have the stories, iterate over stories array and display each story
       this.storyList.stories.forEach(storyObj => {
         this.displaySingleStory(storyObj);
       });
     });
   }
 
-  // do all things related to creating a favorites page view
+  // display only user's favorite stories
   displayFavoriteStories() {
     // delete all existing stories in order to re-render page
     $('#stories').empty();
 
-    // grab user facorites
+    // take each story in user favorites and display
     this.user.favorites.forEach(storyObj => {
       this.displaySingleStory(storyObj);
     });
   }
 
-  // return false if story is not found in user's ownStories ArraY, other true
-  isUserOwnedStory(targetStoryId) {
-    // if user is not defined yet, return false
-    if (this.user.name === undefined) {
-      return false;
-    }
-    // finds the index of the storyObj in the ownStories array that matches targetStoryId
-    const storyObjIndex = this.user.ownStories.findIndex(storyObj => {
-      return storyObj.storyId === targetStoryId;
-    });
-
-    // if targetStoryId is not found in ownStories, return false, otherwise true
-    if (storyObjIndex === -1) {
-      return false;
-    }
-    return true;
-  }
-
+  // display a single story to dom container
   displaySingleStory(storyObj) {
-    // this will then create jquery div container for one story with all details
-    let $newLink = $('<a>', {
-      text: `random`,
-      href: storyObj.url,
-      target: '_blank'
-    });
-
-    let hostname = $newLink
-      .prop('hostname')
-      .split('.')
-      .slice(-2)
-      .join('.');
+    const hostname = this.extractHostName(storyObj);
 
     // determines if we should show delete button
-    let deleteClassString;
+    let deleteClassString = '';
     if (this.isUserOwnedStory(storyObj.storyId)) {
-      deleteClassString = 'delete--element'; // dont hide item (no class needed)
+      // user is author, show delete link
+      deleteClassString = 'delete--element';
     } else {
-      deleteClassString = 'delete--element element--hide'; //hide item using class css
+      // user is not author, hide delete link
+      deleteClassString = 'delete--element element--hide';
     }
 
-    // determines if current storyID is in user's favorite and determine star color
+    // determines what type of favorite star to display
     let favoriteClassString;
     if (this.user.name === undefined) {
+      // user is not logged in, hide favorites element
       favoriteClassString = 'far fa-star element--hide';
     } else if (this.isStoryInUserFavorites(storyObj.storyId)) {
+      // user is logged in, story is in favorites, show solid star
       favoriteClassString = 'fas fa-star';
     } else {
+      // user is logged in, story is not in favorites, show outline of star
       favoriteClassString = 'far fa-star';
     }
 
+    // render story element to dom container
     $('#stories').append(
       $('<li>')
         .attr('id', storyObj.storyId)
@@ -313,19 +307,68 @@ class DomView {
     );
   }
 
+  // extracts hostname from storyObj and return result
+  extractHostName(storyObj) {
+    // turn storyObj into jQuery anchor link obj
+    let $newLink = $('<a>', {
+      href: storyObj.url
+    });
+
+    // extract hostname from jQuery anchor link obj
+    let hostname = $newLink
+      .prop('hostname')
+      .split('.')
+      .slice(-2)
+      .join('.');
+
+    return hostname;
+  }
+
+  // determine if story is one authored by the user (boolean)
+  isUserOwnedStory(targetStoryId) {
+    // if user is not logged in, return false
+    if (this.user.name === undefined) {
+      return false;
+    }
+    // finds the index of the story user's ownStories array that matches targetStoryId
+    const storyObjIndex = this.user.ownStories.findIndex(storyObj => {
+      return storyObj.storyId === targetStoryId;
+    });
+    // if targetStoryId is not found in ownStories, return false, otherwise true
+    if (storyObjIndex === -1) {
+      return false;
+    }
+    return true;
+  }
+
+  // determine if a story is in our user favorites (boolean)
+  isStoryInUserFavorites(targetStoryId) {
+    // if user is not defined yet, return false
+    if (this.user.name === undefined) {
+      return false;
+    }
+    // finds the index of the storyObj in the favorites array that matches targetStoryId
+    const storyObjIndex = this.user.favorites.findIndex(storyObj => {
+      return storyObj.storyId === targetStoryId;
+    });
+    // if targetStoryId is not found in favoriteStories, return false, otherwise true
+    if (storyObjIndex === -1) {
+      return false;
+    }
+    return true;
+  }
+
+  // submits login info from form to API
   loginUserSubmission() {
     event.preventDefault();
     const usernameInput = $('#username').val();
     const passwordInput = $('#password').val();
 
-    // Summary: Submit form, Log User In, Store Token, Retrieve new stories
-    // call login Function - check what that requires
-    //      then call retreive all user details
-    //            then call displayAllStories again
-
     this.user.username = usernameInput;
     this.user.password = passwordInput;
 
+    // send API call to login, retrieve user details, get recent stories then
+    //     render logged in state, displayAllStories
     this.user.login(() => {
       this.user.retrieveDetails(() => {
         StoryList.getStories(result => {
@@ -338,21 +381,35 @@ class DomView {
     });
   }
 
-  // Logic to check if a token exists / User is logged in
+  // make a request to API to log user out
+  logUserOut() {
+    // delete Local Storage
+    localStorage.clear();
+    // delete all Local User Data
+    this.user = new User();
+    // rerender full stories
+    StoryList.getStories(result => {
+      this.storyList = result;
+      this.checkForLoggedUser(() => this.displayAllStories());
+    });
+  }
+
+  // check if a user is currently logged in and then execute callback
   checkForLoggedUser(cb) {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
 
     // If user token is found in LocalStorage
     if (token) {
-      // logic to hide user-required links on navbar
+      // Show Logged-in User Specific Links
       $('#submit').show();
       $('#favorites').show();
 
+      // stories login info into User instance, retrieve user info from API and render DOM elements
       this.user.loginToken = token;
       this.user.username = username;
       this.user.retrieveDetails(result => {
-        // Create DOM Elements in right side of nav-bar
+        // Create DOM Elements in right side of nav-bar (Username/Profile Link & Logout)
         const displayName = result.name;
         $('#loginContainer').empty();
         $('#loginContainer')
@@ -370,21 +427,7 @@ class DomView {
               .text('Logout')
               .addClass('btn btn-dark my-2 my-sm-0')
               .attr('type', 'submit')
-              .on('click', () => {
-                // delete Local Storage
-                localStorage.clear();
-
-                // delete all Local User Data
-                this.user = new User();
-
-                // rerender full stories
-                StoryList.getStories(result => {
-                  this.storyList = result;
-                  this.checkForLoggedUser(() => {
-                    this.displayAllStories();
-                  });
-                });
-              })
+              .on('click', this.logUserOut.bind(this))
           );
         return cb();
       });
@@ -435,171 +478,143 @@ class DomView {
     }
   }
 
-  createUserSub(event) {
+  // submits create user request to API
+  submitCreateUser(event) {
     event.preventDefault();
 
-    // grab values from forms
+    // grab values from create user forms
     const name = $('#create-displayname').val();
     const username = $('#create-username').val();
     const password = $('#create-password').val();
 
-    // submit data to API
+    // submit data to API for user creation
     User.create(username, password, name, user => {
       $('#createuser-form').slideUp();
-      this.checkForLoggedUser(() => {
-        this.displayAllStories();
-      });
+      this.checkForLoggedUser(() => this.displayAllStories());
     });
   }
 
-  addNewStory(event) {
+  // submits add new story request to API
+  submitNewStory(event) {
     event.preventDefault();
 
-    // grab values from forms
+    // grab values from add new story form
     const title = $('#title').val();
     const author = this.user.name;
     const url = $('#url').val();
 
-    // storyData Payload for API
-    const storyDataPayload = {
+    const storyDataObj = {
       title,
       author,
       url
     };
 
-    this.storyList.addStory(this.user, storyDataPayload, response => {
+    // submit data to API for adding new story
+    this.storyList.addStory(this.user, storyDataObj, apiResponse => {
       $('#new-form').slideToggle();
-      this.user.retrieveDetails(user => {
-        this.displayAllStories();
-      });
+      this.user.retrieveDetails(user => this.displayAllStories());
     });
   }
 
-  // returns true or false - checks if storyID is in user Favorites
-  isStoryInUserFavorites(targetStoryId) {
-    // if user is not defined yet, return false
-    if (this.user.name === undefined) {
-      return false;
-    }
-
-    // finds the index of the storyObj in the favorites array that matches targetStoryId
-    const storyObjIndex = this.user.favorites.findIndex(storyObj => {
-      return storyObj.storyId === targetStoryId;
-    });
-
-    // if targetStoryId is not found in ownStories, return false, otherwise true
-    if (storyObjIndex === -1) {
-      return false;
-    }
-    return true;
-  }
-
-  updateUserProfile() {
-    // grab the values from the form
-
+  // submits create user profile modification request to API
+  submitUpdateUserProfile() {
+    // grab the values from the submit user changes form
     const name = $('#updateprofile-displayname').val();
     const password = $('#updateprofile-password').val();
 
-    const updateData = {
+    const patchDataObj = {
       name,
       password
     };
 
-    this.user.update(updateData, response => {
-      console.log('completed');
+    // send api request, then hide user profile change form and update username in navbar
+    this.user.update(patchDataObj, apiResponse => {
       $('#updateprofile-form').slideUp();
       $('#profile').text(name);
     });
-    //    send update patch request to the API
-    //    toggle the form div back up using slideup
-    //       update displayName next to Logout
 
     // TODO future: if you show username/name details in the stories, have to re-render stories
-    // TODO future: confirm old password to create new password - on file
+    // TODO future: confirm old password to create new password on file
   }
 
+  // createEventListeners for static DOM elements
   createEventListeners() {
-    // event listener - crete user submission
-    $('#createuser-form').on('submit', this.createUserSub.bind(this));
+    /*------------------ Submit Events -------------------*/
+    // event listener - submit user creation to API
+    $('#createuser-form').on('submit', this.submitCreateUser.bind(this));
 
-    // event listener - submit new story to API
-    $('#new-form').on('submit', this.addNewStory.bind(this));
+    // event listener - submit add story to API
+    $('#new-form').on('submit', this.submitNewStory.bind(this));
 
-    // event listener - update uesrprofile
-    $('#updateprofile-form').on('submit', this.updateUserProfile.bind(this));
+    // event listener - submit update userprofile request to API
+    $('#updateprofile-form').on(
+      'submit',
+      this.submitUpdateUserProfile.bind(this)
+    );
 
-    // event listener - show user profile form - slide toggle
+    /*------------------ Click Events -------------------*/
+    // event listener - show hidden user profile modification form
     $('#loginContainer').on('click', '#profile', event => {
       event.preventDefault();
       $('#updateprofile-form').slideToggle();
 
-      // populate profile with name, username
+      // populate form with name, username
       $('#updateprofile-username').val(this.user.username);
       $('#updateprofile-displayname').val(this.user.name);
     });
 
-    // event listener - parent delegation for adding/remove stories from favorites
+    // event delegation for adding/remove stories from favorites
     $('#stories').on('click', '.far, .fas', event => {
-      // grab story id of parent li target = storyID
+      // retrieve story id of parent li target = storyID
       const storyId = $(event.target)
         .closest('li')
         .attr('id');
 
       // logic for adding/remove story for userFavorites
       if (this.isStoryInUserFavorites(storyId)) {
-        //     if yes, then remove from userFavorite via APi call
-        this.user.removeFavorite(storyId, response => {
+        // story in currently in favorites, remove request via APi call
+        this.user.removeFavorite(storyId, apiResponse => {
           // swaps rendering of star on click
           $(event.target).toggleClass('far fas');
-
-          // then retreive userDetails from API
-          this.user.retrieveDetails(user => {
-            return;
-          });
+          this.user.retrieveDetails();
         });
       } else {
-        // else - (storyID is NOT in userFavorites)
-        this.user.addFavorite(storyId, response => {
+        // story in currently not in favorites, add request via APi call
+        this.user.addFavorite(storyId, apiResponse => {
           // swaps rendering of star on click
           $(event.target).toggleClass('far fas');
-
-          // then retreive userDetails from API
-          this.user.retrieveDetails(user => {
-            return;
-          });
+          this.user.retrieveDetails();
         });
       }
 
-      // optional, if you may want to rerender favorites page after toggles
-      //    currently it does not
-      //    would require you to pull current text value of favorites link to determin which view to rerender - displayfavorites or displayall
+      // Optional TODO, you may want to rerender favorites page after toggles
+      //   need to pull current text value of favorites link to determine which view to rerender
+      //       displayfavorites or displayall
     });
 
-    // event listener - to delete a story the user owns
+    // event delegation - delete a story the user authored
     $('#stories').on('click', '.delete--element', event => {
       event.preventDefault();
-      // grabs storyId of parent Element that delete button is in
+      // retrieve story id of parent li target = storyID
       const storyId = $(event.target)
         .closest('li')
         .attr('id');
 
       // make api call to delete a story, then rerender page w/ display all stories
-      this.storyList.removeStory(this.user, storyId, () => {
-        console.log('delete succeded');
-        // removeStory chains retreieveDetails for you, then runs cb aftwards
-        this.displayAllStories();
-      });
+      this.storyList.removeStory(this.user, storyId, () =>
+        this.displayAllStories()
+      );
     });
 
-    // even listener for favorites/all element
-    $('#favorites').on('click', event => {
+    // event listener - display all stories or just favorites depending on current link
+    $('#favorites').on('click', () => {
       const currentLinkText = $('#favorites').text();
       if (currentLinkText === 'favorites') {
-        //call our favor func
+        // display favorites and change link to all
         $('#favorites').text('all');
         this.displayFavoriteStories();
       } else if (currentLinkText === 'all') {
-        //call our displayallstories render func
+        // display all stories and change link to favorites
         $('#favorites').text('favorites');
         this.displayAllStories();
       }
@@ -609,8 +624,8 @@ class DomView {
 
 // Wait for DOM-Onload for jQuery
 $(function() {
-  // check for logged in user, then display all user stories
   const domView = new DomView();
+  // check for logged in user, then display all user stories
   domView.checkForLoggedUser(() => {
     domView.displayAllStories();
   });
