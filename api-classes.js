@@ -546,7 +546,7 @@ class DomView {
         .attr('id');
 
       // logic for adding/remove story for userFavorites
-      if (domView.isStoryInUserFavorites(storyId)) {
+      if (this.isStoryInUserFavorites(storyId)) {
         //     if yes, then remove from userFavorite via APi call
         this.user.removeFavorite(storyId, response => {
           // swaps rendering of star on click
@@ -597,11 +597,11 @@ class DomView {
       if (currentLinkText === 'favorites') {
         //call our favor func
         $('#favorites').text('all');
-        domView.displayFavoriteStories();
+        this.displayFavoriteStories();
       } else if (currentLinkText === 'all') {
         //call our displayallstories render func
         $('#favorites').text('favorites');
-        domView.displayAllStories();
+        this.displayAllStories();
       }
     });
   }
