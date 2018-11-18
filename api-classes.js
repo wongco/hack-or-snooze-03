@@ -305,6 +305,16 @@ class DomView {
             .addClass('story--detail')
         )
     );
+
+    // TODO: Add Logic to support Editing Individual Story
+    //    Similar Logic as above:
+    //    add edit story form element
+    //    hide element by default, show if belonging to user
+    //    create event listener for submitting
+    //        submit should prevent default,
+    //        submit api request to modify story
+    //           cb -> retrevie user details
+    //                cb -> render all pages again
   }
 
   // extracts hostname from storyObj and return result
