@@ -120,8 +120,8 @@ class User {
 
       // takes api response stories and maps them into Story instances
       this.ownStories = apiResponse.user.stories.map(story => {
-        const { username, title, author, url, storyId } = story;
-        return new Story(username, title, author, url, storyId);
+        const { author, title, url, username, storyId } = story;
+        return new Story(author, title, url, username, storyId);
       });
 
       return cb(this); // callback returns user instance
@@ -646,11 +646,21 @@ class DomView {
 
     // TODO: Add event listner logic for submitting edit story request
     // Sample Modal Logic
-    $('#storyModal').on('show.bs.modal', function(event) {
+    $('#storyModal').on('show.bs.modal', event => {
+      // event.relatedTarget grabs button element in story container
       const storyId = $(event.relatedTarget)
         .closest('li')
         .attr('id');
-      console.log(event.relatedTarget);
+
+      // obtain index in user ownStories with matching ID
+      const targetStoryIdx = this.user.ownStories.findIndex(story => {
+        return story.storyId === storyId;
+      });
+
+      const title = this.user.ownStories[targetStoryIdx].title;
+      const url = this.user.ownStories[targetStoryIdx].url;
+      console.log(title);
+      console.log(url);
       console.log(storyId);
       // var button = $(event.relatedTarget); // Button that triggered the modal
       // var recipient = button.data('whatever'); // Extract info from data-* attributes
