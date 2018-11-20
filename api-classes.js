@@ -252,14 +252,17 @@ class DomView {
   displaySingleStory(storyObj) {
     const hostname = this.extractHostName(storyObj);
 
-    // determines if we should show delete button
+    // determines if we should show delete button & edit button
     let deleteClassString = '';
+    let editClassString = '';
     if (this.isUserOwnedStory(storyObj.storyId)) {
       // user is author, show delete link
       deleteClassString = 'delete--element';
+      editClassString = 'edit--elemenent';
     } else {
       // user is not author, hide delete link
       deleteClassString = 'delete--element element--hide';
+      editClassString = 'edit--elemenent element--hide';
     }
 
     // determines what type of favorite star to display
@@ -300,6 +303,17 @@ class DomView {
                   $('<a>')
                     .attr('href', '#')
                     .text('Delete')
+                )
+            )
+            .append(
+              $('<span>')
+                .addClass(editClassString)
+                .append(
+                  $('<button>')
+                    .addClass('btn btn-primary')
+                    .text('Edit Story')
+                    .attr('data-toggle', 'modal')
+                    .attr('data-target', '#storyModal')
                 )
             )
             .addClass('story--detail')
