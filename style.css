@@ -1,6 +1,36 @@
+/* --------------------
+-----Body Wide CSS-----
+-------------------- */
+
 body {
   margin: 8px;
 }
+
+/* Hide Elements during Initial Rendering */
+#new-form,
+#createuser-form,
+.element--hide,
+#updateprofile-form {
+  display: none;
+}
+
+#new-form,
+#stories,
+#createuser-form,
+#updateprofile-form {
+  background-color: #f6f6ef;
+}
+
+#submit:active,
+#submit:focus,
+#favorites:active,
+#favorites:focus {
+  text-decoration: none;
+}
+
+/* --------------------
+-----Navbar CSS-----
+-------------------- */
 
 .navbar a,
 .navbar a:hover {
@@ -16,34 +46,17 @@ body {
   margin-bottom: 0;
 }
 
+/* --------------------
+-----Story CSS---------
+-------------------- */
+
 .form-horizontal {
   padding: 20px 0;
-}
-
-#new-form,
-#stories,
-#createuser-form,
-#updateprofile-form {
-  background-color: #f6f6ef;
-}
-
-#new-form,
-#createuser-form,
-.element--hide,
-#updateprofile-form {
-  display: none;
 }
 
 #stories > li {
   color: #828282;
   padding: 5px 0;
-}
-
-#submit:active,
-#submit:focus,
-#favorites:active,
-#favorites:focus {
-  text-decoration: none;
 }
 
 #submit:hover,
