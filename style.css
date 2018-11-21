@@ -83,6 +83,7 @@ small {
   list-style: none;
 }
 
-.glyphicon:hover {
+.glyphicon:hover,
+.badge:hover {
   cursor: pointer;
 }

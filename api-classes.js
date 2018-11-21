@@ -300,17 +300,23 @@ class DomView {
               $('<span>')
                 .addClass(deleteClassString)
                 .append(
-                  $('<a>')
-                    .attr('href', '#')
+                  $('<span>')
+                    .addClass('badge badge-primary mx-1')
                     .text('Delete')
                 )
+              // commented out - testing with badges instead
+              // .append(
+              //   $('<a>')
+              //     .attr('href', '#')
+              //     .text('Delete')
+              // )
             )
             .append(
               $('<span>')
                 .addClass(editClassString)
                 .append(
-                  $('<button>')
-                    .addClass('btn btn-primary')
+                  $('<span>')
+                    .addClass('badge badge-primary mx-1')
                     .text('Edit Story')
                     .attr('data-toggle', 'modal')
                     .attr('data-target', '#storyModal')
@@ -662,6 +668,8 @@ class DomView {
       console.log(title);
       console.log(url);
       console.log(storyId);
+      $('#edit-title').val(title);
+      $('#edit-url').val(url);
       // var button = $(event.relatedTarget); // Button that triggered the modal
       // var recipient = button.data('whatever'); // Extract info from data-* attributes
       // // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
