@@ -304,12 +304,6 @@ class DomView {
                     .addClass('badge badge-primary mx-1')
                     .text('Delete')
                 )
-              // commented out - testing with badges instead
-              // .append(
-              //   $('<a>')
-              //     .attr('href', '#')
-              //     .text('Delete')
-              // )
             )
             .append(
               $('<span>')
@@ -325,16 +319,6 @@ class DomView {
             .addClass('story--detail')
         )
     );
-
-    // TODO: Add Logic to support Editing Individual Story
-    //    Similar Logic as above:
-    //    add edit story form element
-    //    hide element by default, show if belonging to user
-    //    create event listener for submitting
-    //        submit should prevent default,
-    //        submit api request to modify story
-    //           cb -> retrevie user details
-    //                cb -> render all pages again
   }
 
   // extracts hostname from storyObj and return result
@@ -606,14 +590,18 @@ class DomView {
         this.user.removeFavorite(storyId, apiResponse => {
           // swaps rendering of star on click
           $(event.target).toggleClass('far fas');
-          this.user.retrieveDetails();
+          this.user.retrieveDetails(user => {
+            return;
+          });
         });
       } else {
         // story in currently not in favorites, add request via APi call
         this.user.addFavorite(storyId, apiResponse => {
           // swaps rendering of star on click
           $(event.target).toggleClass('far fas');
-          this.user.retrieveDetails();
+          this.user.retrieveDetails(user => {
+            return;
+          });
         });
       }
 
@@ -650,8 +638,7 @@ class DomView {
       }
     });
 
-    // TODO: Add event listner logic for submitting edit story request
-    // Sample Modal Logic
+    // event listener for modal popup
     $('#storyModal').on('show.bs.modal', event => {
       // event.relatedTarget grabs button element in story container
       const storyId = $(event.relatedTarget)
@@ -665,18 +652,37 @@ class DomView {
 
       const title = this.user.ownStories[targetStoryIdx].title;
       const url = this.user.ownStories[targetStoryIdx].url;
-      console.log(title);
-      console.log(url);
-      console.log(storyId);
-      $('#edit-title').val(title);
+      $('#edit-title')
+        .val(title)
+        .attr('data-storyId', storyId);
       $('#edit-url').val(url);
-      // var button = $(event.relatedTarget); // Button that triggered the modal
-      // var recipient = button.data('whatever'); // Extract info from data-* attributes
-      // // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-      // // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-      // var modal = $(this);
-      // modal.find('.modal-title').text('New message to ' + recipient);
-      // modal.find('.modal-body input').val(recipient);
+    });
+
+    // event listener for submitting story change
+    $('#update-story').on('click', () => {
+      const storyId = $('#edit-title').attr('data-storyId');
+      const updatedTitle = $('#edit-title').val();
+      const updatedUrl = $('#edit-url').val();
+
+      // hide Modal after submit
+      $('#editStoryModal').modal('hide');
+
+      // find story in ownStoriesIdx for AJAX Call
+      const targetStoryIdx = this.user.ownStories.findIndex(story => {
+        return story.storyId === storyId;
+      });
+
+      // modified story data obj for sending to API
+      const storyData = {
+        author: this.user.name,
+        title: updatedTitle,
+        url: updatedUrl
+      };
+
+      // initiate call api ajax call, then re-render all stories to reflect change
+      this.user.ownStories[targetStoryIdx].update(this.user, storyData, () => {
+        this.displayAllStories();
+      });
     });
   }
 }
