@@ -526,7 +526,11 @@ class DomView {
     // submit data to API for adding new story
     this.storyList.addStory(this.user, storyDataObj, apiResponse => {
       $('#new-form').slideToggle();
-      this.user.retrieveDetails(user => this.displayAllStories());
+      this.user.retrieveDetails(user => {
+        $('#title').val('');
+        $('#url').val('');
+        this.displayAllStories();
+      });
     });
   }
 
@@ -551,6 +555,49 @@ class DomView {
     // TODO future: confirm old password to create new password on file
   }
 
+  // show form for viewing and updating user profile info
+  showUserProfileForm(event) {
+    event.preventDefault();
+    $('#updateprofile-form').slideToggle();
+
+    // populate form with name, username
+    $('#updateprofile-username').val(this.user.username);
+    $('#updateprofile-displayname').val(this.user.name);
+  }
+
+  // add & remove stories from favorites status
+  toggleStoryFavStatus(event) {
+    // retrieve story id of parent li target = storyID
+    const storyId = $(event.target)
+      .closest('li')
+      .attr('id');
+
+    // logic for adding/remove story for userFavorites
+    if (this.isStoryInUserFavorites(storyId)) {
+      // story in currently in favorites, remove request via APi call
+      this.user.removeFavorite(storyId, apiResponse => {
+        // swaps rendering of star on click
+        $(event.target).toggleClass('far fas');
+        this.user.retrieveDetails(user => {
+          return;
+        });
+      });
+    } else {
+      // story in currently not in favorites, add request via APi call
+      this.user.addFavorite(storyId, apiResponse => {
+        // swaps rendering of star on click
+        $(event.target).toggleClass('far fas');
+        this.user.retrieveDetails(user => {
+          return;
+        });
+      });
+    }
+
+    // Optional TODO, you may want to rerender favorites page after toggles
+    //   need to pull current text value of favorites link to determine which view to rerender
+    //       displayfavorites or displayall
+  }
+
   // createEventListeners for static DOM elements
   createEventListeners() {
     /*------------------ Submit Events -------------------*/
@@ -568,47 +615,18 @@ class DomView {
 
     /*------------------ Click Events -------------------*/
     // event listener - show hidden user profile modification form
-    $('#loginContainer').on('click', '#profile', event => {
-      event.preventDefault();
-      $('#updateprofile-form').slideToggle();
-
-      // populate form with name, username
-      $('#updateprofile-username').val(this.user.username);
-      $('#updateprofile-displayname').val(this.user.name);
-    });
+    $('#loginContainer').on(
+      'click',
+      '#profile',
+      this.showUserProfileForm.bind(this)
+    );
 
     // event delegation for adding/remove stories from favorites
-    $('#stories').on('click', '.far, .fas', event => {
-      // retrieve story id of parent li target = storyID
-      const storyId = $(event.target)
-        .closest('li')
-        .attr('id');
-
-      // logic for adding/remove story for userFavorites
-      if (this.isStoryInUserFavorites(storyId)) {
-        // story in currently in favorites, remove request via APi call
-        this.user.removeFavorite(storyId, apiResponse => {
-          // swaps rendering of star on click
-          $(event.target).toggleClass('far fas');
-          this.user.retrieveDetails(user => {
-            return;
-          });
-        });
-      } else {
-        // story in currently not in favorites, add request via APi call
-        this.user.addFavorite(storyId, apiResponse => {
-          // swaps rendering of star on click
-          $(event.target).toggleClass('far fas');
-          this.user.retrieveDetails(user => {
-            return;
-          });
-        });
-      }
-
-      // Optional TODO, you may want to rerender favorites page after toggles
-      //   need to pull current text value of favorites link to determine which view to rerender
-      //       displayfavorites or displayall
-    });
+    $('#stories').on(
+      'click',
+      '.far, .fas',
+      this.toggleStoryFavStatus.bind(this)
+    );
 
     // event delegation - delete a story the user authored
     $('#stories').on('click', '.delete--element', event => {
