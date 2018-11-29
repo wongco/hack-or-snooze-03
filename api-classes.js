@@ -316,6 +316,11 @@ class DomView {
                     .attr('data-target', '#storyModal')
                 )
             )
+            .append(
+              $('<span>')
+                .addClass('')
+                .append($('<small>').text(`Posted by: ${storyObj.author}`))
+            )
             .addClass('story--detail')
         )
     );
