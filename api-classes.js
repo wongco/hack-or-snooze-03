@@ -598,6 +598,34 @@ class DomView {
     //       displayfavorites or displayall
   }
 
+  // submits delete story request to API
+  submitDeleteStory(event) {
+    event.preventDefault();
+    // retrieve story id of parent li target = storyID
+    const storyId = $(event.target)
+      .closest('li')
+      .attr('id');
+
+    // make api call to delete a story, then rerender page w/ display all stories
+    this.storyList.removeStory(this.user, storyId, () =>
+      this.displayAllStories()
+    );
+  }
+
+  // toggles display between favorite stories and all stories
+  toggleDisplayFavStories() {
+    const currentLinkText = $('#favorites').text();
+    if (currentLinkText === 'favorites') {
+      // display favorites and change link to all
+      $('#favorites').text('all');
+      this.displayFavoriteStories();
+    } else if (currentLinkText === 'all') {
+      // display all stories and change link to favorites
+      $('#favorites').text('favorites');
+      this.displayAllStories();
+    }
+  }
+
   // createEventListeners for static DOM elements
   createEventListeners() {
     /*------------------ Submit Events -------------------*/
@@ -629,32 +657,14 @@ class DomView {
     );
 
     // event delegation - delete a story the user authored
-    $('#stories').on('click', '.delete--element', event => {
-      event.preventDefault();
-      // retrieve story id of parent li target = storyID
-      const storyId = $(event.target)
-        .closest('li')
-        .attr('id');
-
-      // make api call to delete a story, then rerender page w/ display all stories
-      this.storyList.removeStory(this.user, storyId, () =>
-        this.displayAllStories()
-      );
-    });
+    $('#stories').on(
+      'click',
+      '.delete--element',
+      this.submitDeleteStory.bind(this)
+    );
 
     // event listener - display all stories or just favorites depending on current link
-    $('#favorites').on('click', () => {
-      const currentLinkText = $('#favorites').text();
-      if (currentLinkText === 'favorites') {
-        // display favorites and change link to all
-        $('#favorites').text('all');
-        this.displayFavoriteStories();
-      } else if (currentLinkText === 'all') {
-        // display all stories and change link to favorites
-        $('#favorites').text('favorites');
-        this.displayAllStories();
-      }
-    });
+    $('#favorites').on('click', this.toggleDisplayFavStories.bind(this));
 
     // event listener for modal popup
     $('#storyModal').on('show.bs.modal', event => {
