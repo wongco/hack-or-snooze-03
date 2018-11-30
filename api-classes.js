@@ -631,6 +631,26 @@ class DomView {
     }
   }
 
+  // submits modify story request to API
+  submitStoryModification(event) {
+    // event.relatedTarget grabs button element in story container
+    const storyId = $(event.relatedTarget)
+      .closest('li')
+      .attr('id');
+
+    // obtain index in user ownStories with matching ID
+    const targetStoryIdx = this.user.ownStories.findIndex(story => {
+      return story.storyId === storyId;
+    });
+
+    const title = this.user.ownStories[targetStoryIdx].title;
+    const url = this.user.ownStories[targetStoryIdx].url;
+    $('#edit-title')
+      .val(title)
+      .attr('data-storyId', storyId);
+    $('#edit-url').val(url);
+  }
+
   // createEventListeners for static DOM elements
   createEventListeners() {
     /*------------------ Submit Events -------------------*/
@@ -672,24 +692,10 @@ class DomView {
     $('#favorites').on('click', this.toggleDisplayFavStories.bind(this));
 
     // event listener for modal popup
-    $('#storyModal').on('show.bs.modal', event => {
-      // event.relatedTarget grabs button element in story container
-      const storyId = $(event.relatedTarget)
-        .closest('li')
-        .attr('id');
-
-      // obtain index in user ownStories with matching ID
-      const targetStoryIdx = this.user.ownStories.findIndex(story => {
-        return story.storyId === storyId;
-      });
-
-      const title = this.user.ownStories[targetStoryIdx].title;
-      const url = this.user.ownStories[targetStoryIdx].url;
-      $('#edit-title')
-        .val(title)
-        .attr('data-storyId', storyId);
-      $('#edit-url').val(url);
-    });
+    $('#storyModal').on(
+      'show.bs.modal',
+      this.submitStoryModification.bind(this)
+    );
 
     // event listener for submitting story change
     $('#update-story').on('click', () => {
@@ -722,6 +728,9 @@ class DomView {
 
 // Wait for DOM-Onload for jQuery
 $(function() {
+  /* cache jQuery static variables */
+  const $createuserform = $('#createuser-form');
+
   const domView = new DomView();
   // check for logged in user, then display all user stories
   domView.checkForLoggedUser(() => {
