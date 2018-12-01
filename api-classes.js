@@ -729,7 +729,8 @@ class DomView {
 // Wait for DOM-Onload for jQuery
 $(function() {
   /* cache jQuery static variables */
-  const $createuserform = $('#createuser-form');
+  // const $createuserform = $('#createuser-form');
+  // add logic and check jQuery caching areas
 
   const domView = new DomView();
   // check for logged in user, then display all user stories
