@@ -631,8 +631,8 @@ class DomView {
     }
   }
 
-  // submits modify story request to API
-  submitStoryModification(event) {
+  // retrieve detials on selected story and push to modal
+  retrieveStoryDetails(event) {
     // event.relatedTarget grabs button element in story container
     const storyId = $(event.relatedTarget)
       .closest('li')
@@ -649,6 +649,33 @@ class DomView {
       .val(title)
       .attr('data-storyId', storyId);
     $('#edit-url').val(url);
+  }
+
+  // submit story modification to API
+  submitStoryModification() {
+    const storyId = $('#edit-title').attr('data-storyId');
+    const updatedTitle = $('#edit-title').val();
+    const updatedUrl = $('#edit-url').val();
+
+    // hide Modal after submit
+    $('#editStoryModal').modal('hide');
+
+    // find story in ownStoriesIdx for AJAX Call
+    const targetStoryIdx = this.user.ownStories.findIndex(story => {
+      return story.storyId === storyId;
+    });
+
+    // modified story data obj for sending to API
+    const storyData = {
+      author: this.user.name,
+      title: updatedTitle,
+      url: updatedUrl
+    };
+
+    // initiate call api ajax call, then re-render all stories to reflect change
+    this.user.ownStories[targetStoryIdx].update(this.user, storyData, () => {
+      this.displayAllStories();
+    });
   }
 
   // createEventListeners for static DOM elements
@@ -692,37 +719,10 @@ class DomView {
     $('#favorites').on('click', this.toggleDisplayFavStories.bind(this));
 
     // event listener for modal popup
-    $('#storyModal').on(
-      'show.bs.modal',
-      this.submitStoryModification.bind(this)
-    );
+    $('#storyModal').on('show.bs.modal', this.retrieveStoryDetails.bind(this));
 
-    // event listener for submitting story change
-    $('#update-story').on('click', () => {
-      const storyId = $('#edit-title').attr('data-storyId');
-      const updatedTitle = $('#edit-title').val();
-      const updatedUrl = $('#edit-url').val();
-
-      // hide Modal after submit
-      $('#editStoryModal').modal('hide');
-
-      // find story in ownStoriesIdx for AJAX Call
-      const targetStoryIdx = this.user.ownStories.findIndex(story => {
-        return story.storyId === storyId;
-      });
-
-      // modified story data obj for sending to API
-      const storyData = {
-        author: this.user.name,
-        title: updatedTitle,
-        url: updatedUrl
-      };
-
-      // initiate call api ajax call, then re-render all stories to reflect change
-      this.user.ownStories[targetStoryIdx].update(this.user, storyData, () => {
-        this.displayAllStories();
-      });
-    });
+    // event listener for submitting story modification
+    $('#update-story').on('click', this.submitStoryModification.bind(this));
   }
 }
 
