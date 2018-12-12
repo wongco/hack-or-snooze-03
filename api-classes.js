@@ -47,9 +47,8 @@ class StoryList {
 
 /* instance contains all User details including token, favorited and authored stories */
 class User {
-  constructor(username, password, name, loginToken, favorites, ownStories) {
+  constructor(username, name, loginToken, favorites, ownStories) {
     this.username = username;
-    this.password = password;
     this.name = name;
     this.loginToken = loginToken;
     this.favorites = favorites;
@@ -67,28 +66,27 @@ class User {
     };
 
     const apiResponse = await $.post(`${API_BASE_URL}/signup`, userDataObj);
-    const { username, name, favorites, stories } = apiResponse.user;
+    // const { username, name, favorites, stories } = apiResponse.user;
 
     // items to save to localStorage to check for logged in user
     localStorage.setItem('token', apiResponse.token);
-    localStorage.setItem('username', username);
+    localStorage.setItem('username', apiResponse.username);
 
     return new User(
-      username,
-      password,
-      name,
+      apiResponse.username,
+      apiResponse.name,
       apiResponse.token,
-      favorites,
-      stories
+      apiResponse.favorites,
+      apiResponse.stories
     );
   }
 
   // method for API request to log the user in and retrieves user token
-  async login() {
+  async login(password) {
     let loginDataObj = {
       user: {
         username: this.username,
-        password: this.password
+        password
       }
     };
     const apiResponse = await $.post(`${API_BASE_URL}/login`, loginDataObj);
@@ -368,11 +366,10 @@ class DomView {
     const passwordInput = $('#password').val();
 
     this.user.username = usernameInput;
-    this.user.password = passwordInput;
 
     // send API call to login, retrieve user details, get recent stories then
     //     render logged in state, displayAllStories
-    await this.user.login();
+    await this.user.login(passwordInput);
     await this.user.retrieveDetails();
     this.storyList = await StoryList.getStories();
     await this.checkForLoggedUser();
