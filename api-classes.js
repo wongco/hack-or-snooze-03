@@ -26,7 +26,7 @@ class StoryList {
   }
 
   // method to initiate api call to remove a story, then syncs api user details with local user
-  async removeStory(user, storyId, cb) {
+  async removeStory(user, storyId) {
     const deleteDataObj = { token: user.loginToken };
 
     await $.ajax({
@@ -56,8 +56,8 @@ class User {
     this.ownStories = ownStories;
   }
 
-  // static function that send a create new user request to API and returns new user to callback
-  static async create(username, password, name, cb) {
+  // static function that send a create new user request to API and returns new user
+  static async create(username, password, name) {
     const userDataObj = {
       user: {
         name,
@@ -84,7 +84,7 @@ class User {
   }
 
   // method for API request to log the user in and retrieves user token
-  async login(cb) {
+  async login() {
     let loginDataObj = {
       user: {
         username: this.username,
@@ -100,7 +100,7 @@ class User {
   }
 
   // make a request to the API to get updated info about a single user incl favs and own stories
-  async retrieveDetails(cb) {
+  async retrieveDetails() {
     const getDataObj = {
       token: this.loginToken
     };
@@ -121,7 +121,7 @@ class User {
   }
 
   // make an API request to add a story to the user’s favorites
-  async addFavorite(storyId, cb) {
+  async addFavorite(storyId) {
     const postDataObj = {
       token: this.loginToken
     };
@@ -135,7 +135,7 @@ class User {
   }
 
   // make an API request to remove a story to the user’s favorites
-  async removeFavorite(storyId, cb) {
+  async removeFavorite(storyId) {
     let deleteDataObj = {
       token: this.loginToken
     };
@@ -150,7 +150,7 @@ class User {
   }
 
   // make an API request to update a story
-  async update(userData, cb) {
+  async update(userData) {
     const patchDataObj = {
       token: this.loginToken,
       user: userData
@@ -165,7 +165,7 @@ class User {
   }
 
   // make an API request to remove a user
-  async remove(cb) {
+  async remove() {
     const deleteDataObj = {
       token: this.loginToken
     };
@@ -189,7 +189,7 @@ class Story {
   }
 
   // make an API request to update a story
-  async update(user, storyData, cb) {
+  async update(user, storyData) {
     let patchDataObj = { token: user.loginToken, story: storyData };
 
     await $.ajax({
@@ -392,14 +392,14 @@ class DomView {
   }
 
   // check if a user is currently logged in and then execute callback
-  async checkForLoggedUser(cb) {
+  async checkForLoggedUser() {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
 
     // If user token is found in LocalStorage
     if (token) {
       // Show Logged-in User Specific Links
-      $('#submit').show();
+      $('#addStory').show();
       $('#favorites').show();
 
       // stories login info into User instance, retrieve user info from API and render DOM elements
@@ -431,7 +431,7 @@ class DomView {
       // User token does not exist. Create sign in on right side of nav bar
 
       // logic to hide user-required links on navbar
-      $('#submit').hide();
+      $('#addStory').hide();
       $('#favorites').hide();
 
       $('#loginContainer').empty();
@@ -647,18 +647,23 @@ class DomView {
   async createEventListeners() {
     /*------------------ Submit Events -------------------*/
     // event listener - submit user creation to API
-    $('#createuser-form').on('submit', await this.submitCreateUser.bind(this));
+    $('#createuser-form').submit(await this.submitCreateUser.bind(this));
 
     // event listener - submit add story to API
-    $('#new-form').on('submit', await this.submitNewStory.bind(this));
+    $('#new-form').submit(await this.submitNewStory.bind(this));
 
     // event listener - submit update userprofile request to API
-    $('#updateprofile-form').on(
-      'submit',
+    $('#updateprofile-form').submit(
       await this.submitUpdateUserProfile.bind(this)
     );
 
     /*------------------ Click Events -------------------*/
+
+    // event listener - show add story form
+    $('#addStory').click(() => {
+      $('#new-form').slideToggle();
+    });
+
     // event listener - show hidden user profile modification form
     $('#loginContainer').on(
       'click',
@@ -681,7 +686,7 @@ class DomView {
     );
 
     // event listener - display all stories or just favorites depending on current link
-    $('#favorites').on('click', await this.toggleDisplayFavStories.bind(this));
+    $('#favorites').click(await this.toggleDisplayFavStories.bind(this));
 
     // event listener for modal popup
     $('#storyModal').on(
@@ -690,22 +695,17 @@ class DomView {
     );
 
     // event listener for submitting story modification
-    $('#update-story').on(
-      'click',
-      await this.submitStoryModification.bind(this)
-    );
+    $('#update-story').click(await this.submitStoryModification.bind(this));
   }
 }
 
 // Wait for DOM-Onload for jQuery
 $(function() {
-  /* cache jQuery static variables */
-  // const $createuserform = $('#createuser-form');
-  // add logic and check jQuery caching areas
+  // startup app
+  initializeApp();
 
-  runAll();
-
-  async function runAll() {
+  // sequence of actions need to render starter page
+  async function initializeApp() {
     const domView = new DomView();
     // check for logged in user, then display all user stories
     await domView.checkForLoggedUser();
