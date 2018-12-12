@@ -22,7 +22,7 @@ class StoryList {
   async addStory(user, story) {
     const postDataObj = { token: user.loginToken, story };
     await $.post(`${API_BASE_URL}/stories`, postDataObj);
-    user.retrieveDetails();
+    await user.retrieveDetails();
   }
 
   // method to initiate api call to remove a story, then syncs api user details with local user
@@ -41,7 +41,7 @@ class StoryList {
     );
     // removes story from local instance
     this.stories.splice(storyIndex, 1);
-    user.retrieveDetails();
+    await user.retrieveDetails();
   }
 }
 
@@ -131,7 +131,7 @@ class User {
       postDataObj
     );
 
-    this.retrieveDetails(); // returns api response to callback
+    await this.retrieveDetails(); // returns api response to callback
   }
 
   // make an API request to remove a story to the user’s favorites
@@ -146,7 +146,7 @@ class User {
       data: deleteDataObj
     });
 
-    this.retrieveDetails(); // returns api response to callback
+    await this.retrieveDetails(); // returns api response to callback
   }
 
   // make an API request to update a story
@@ -161,7 +161,7 @@ class User {
       method: 'PATCH',
       data: patchDataObj
     });
-    this.retrieveDetails(); // returns apiResponse to callback
+    await this.retrieveDetails(); // returns apiResponse to callback
   }
 
   // make an API request to remove a user
@@ -197,7 +197,7 @@ class Story {
       method: 'PATCH',
       data: patchDataObj
     });
-    user.retrieveDetails();
+    await user.retrieveDetails();
   }
 }
 
@@ -362,7 +362,7 @@ class DomView {
   }
 
   // submits login info from form to API
-  loginUserSubmission() {
+  async loginUserSubmission() {
     event.preventDefault();
     const usernameInput = $('#username').val();
     const passwordInput = $('#password').val();
@@ -372,33 +372,27 @@ class DomView {
 
     // send API call to login, retrieve user details, get recent stories then
     //     render logged in state, displayAllStories
-    this.user.login(() => {
-      this.user.retrieveDetails(() => {
-        StoryList.getStories(result => {
-          this.storyList = result;
-          this.checkForLoggedUser(() => {
-            this.displayAllStories();
-          });
-        });
-      });
-    });
+    await this.user.login();
+    await this.user.retrieveDetails();
+    this.storyList = await StoryList.getStories();
+    await this.checkForLoggedUser();
+    await this.displayAllStories();
   }
 
   // make a request to API to log user out
-  logUserOut() {
+  async logUserOut() {
     // delete Local Storage
     localStorage.clear();
     // delete all Local User Data
     this.user = new User();
     // rerender full stories
-    StoryList.getStories(result => {
-      this.storyList = result;
-      this.checkForLoggedUser(() => this.displayAllStories());
-    });
+    this.storyList = await StoryList.getStories();
+    await this.checkForLoggedUser();
+    await this.displayAllStories();
   }
 
   // check if a user is currently logged in and then execute callback
-  checkForLoggedUser(cb) {
+  async checkForLoggedUser(cb) {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
 
@@ -411,29 +405,28 @@ class DomView {
       // stories login info into User instance, retrieve user info from API and render DOM elements
       this.user.loginToken = token;
       this.user.username = username;
-      this.user.retrieveDetails(result => {
-        // Create DOM Elements in right side of nav-bar (Username/Profile Link & Logout)
-        const displayName = result.name;
-        $('#loginContainer').empty();
-        $('#loginContainer')
-          .append(
-            $('<span>').append(
-              $('<a>')
-                .text(displayName)
-                .addClass('mr-2')
-                .attr('href', 'javascript:void(0)')
-                .attr('id', 'profile')
-            )
+      await this.user.retrieveDetails();
+
+      // Create DOM Elements in right side of nav-bar (Username/Profile Link & Logout)
+      const displayName = this.user.name;
+      $('#loginContainer').empty();
+      $('#loginContainer')
+        .append(
+          $('<span>').append(
+            $('<a>')
+              .text(displayName)
+              .addClass('mr-2')
+              .attr('href', 'javascript:void(0)')
+              .attr('id', 'profile')
           )
-          .append(
-            $('<button>')
-              .text('Logout')
-              .addClass('btn btn-dark my-2 my-sm-0')
-              .attr('type', 'submit')
-              .on('click', this.logUserOut.bind(this))
-          );
-        return cb();
-      });
+        )
+        .append(
+          $('<button>')
+            .text('Logout')
+            .addClass('btn btn-dark my-2 my-sm-0')
+            .attr('type', 'submit')
+            .on('click', await this.logUserOut.bind(this))
+        );
     } else {
       // User token does not exist. Create sign in on right side of nav bar
 
@@ -464,7 +457,7 @@ class DomView {
               .text('Login')
               .addClass('btn btn-dark my-2 my-sm-0')
               .attr('type', 'submit')
-              .on('click', this.loginUserSubmission.bind(this))
+              .on('click', await this.loginUserSubmission.bind(this))
           )
           .append(
             $('<button>')
@@ -477,12 +470,11 @@ class DomView {
               })
           )
       );
-      return cb();
     }
   }
 
   // submits create user request to API
-  submitCreateUser(event) {
+  async submitCreateUser(event) {
     event.preventDefault();
 
     // grab values from create user forms
@@ -491,14 +483,14 @@ class DomView {
     const password = $('#create-password').val();
 
     // submit data to API for user creation
-    User.create(username, password, name, user => {
-      $('#createuser-form').slideUp();
-      this.checkForLoggedUser(() => this.displayAllStories());
-    });
+    User.create(username, password, name);
+    $('#createuser-form').slideUp();
+    await this.checkForLoggedUser();
+    await this.displayAllStories();
   }
 
   // submits add new story request to API
-  submitNewStory(event) {
+  async submitNewStory(event) {
     event.preventDefault();
 
     // grab values from add new story form
@@ -513,18 +505,16 @@ class DomView {
     };
 
     // submit data to API for adding new story
-    this.storyList.addStory(this.user, storyDataObj, apiResponse => {
-      $('#new-form').slideToggle();
-      this.user.retrieveDetails(user => {
-        $('#title').val('');
-        $('#url').val('');
-        this.displayAllStories();
-      });
-    });
+    await this.storyList.addStory(this.user, storyDataObj);
+    $('#new-form').slideToggle();
+    await this.user.retrieveDetails();
+    $('#title').val('');
+    $('#url').val('');
+    await this.displayAllStories();
   }
 
   // submits create user profile modification request to API
-  submitUpdateUserProfile() {
+  async submitUpdateUserProfile() {
     // grab the values from the submit user changes form
     const name = $('#updateprofile-displayname').val();
     const password = $('#updateprofile-password').val();
@@ -535,10 +525,9 @@ class DomView {
     };
 
     // send api request, then hide user profile change form and update username in navbar
-    this.user.update(patchDataObj, apiResponse => {
-      $('#updateprofile-form').slideUp();
-      $('#profile').text(name);
-    });
+    await this.user.update(patchDataObj);
+    $('#updateprofile-form').slideUp();
+    $('#profile').text(name);
 
     // TODO future: if you show username/name details in the stories, have to re-render stories
     // TODO future: confirm old password to create new password on file
@@ -555,7 +544,7 @@ class DomView {
   }
 
   // add & remove stories from favorites status
-  toggleStoryFavStatus(event) {
+  async toggleStoryFavStatus(event) {
     // retrieve story id of parent li target = storyID
     const storyId = $(event.target)
       .closest('li')
@@ -564,22 +553,16 @@ class DomView {
     // logic for adding/remove story for userFavorites
     if (this.isStoryInUserFavorites(storyId)) {
       // story in currently in favorites, remove request via APi call
-      this.user.removeFavorite(storyId, apiResponse => {
-        // swaps rendering of star on click
-        $(event.target).toggleClass('far fas');
-        this.user.retrieveDetails(user => {
-          return;
-        });
-      });
+      await this.user.removeFavorite(storyId);
+      // swaps rendering of star on click
+      $(event.target).toggleClass('far fas');
+      await this.user.retrieveDetails();
     } else {
       // story in currently not in favorites, add request via APi call
-      this.user.addFavorite(storyId, apiResponse => {
-        // swaps rendering of star on click
-        $(event.target).toggleClass('far fas');
-        this.user.retrieveDetails(user => {
-          return;
-        });
-      });
+      await this.user.addFavorite(storyId);
+      // swaps rendering of star on click
+      $(event.target).toggleClass('far fas');
+      await this.user.retrieveDetails();
     }
 
     // Optional TODO, you may want to rerender favorites page after toggles
@@ -588,7 +571,7 @@ class DomView {
   }
 
   // submits delete story request to API
-  submitDeleteStory(event) {
+  async submitDeleteStory(event) {
     event.preventDefault();
     // retrieve story id of parent li target = storyID
     const storyId = $(event.target)
@@ -596,26 +579,25 @@ class DomView {
       .attr('id');
 
     // make api call to delete a story, then rerender page w/ display all stories
-    this.storyList.removeStory(this.user, storyId, () =>
-      this.displayAllStories()
-    );
+    await this.storyList.removeStory(this.user, storyId);
+    await this.displayAllStories();
   }
 
   // toggles display between favorite stories and all stories
-  toggleDisplayFavStories() {
+  async toggleDisplayFavStories() {
     const currentLinkText = $('#favorites').text();
     if (currentLinkText === 'favorites') {
       // display favorites and change link to all
       $('#favorites').text('all');
-      this.displayFavoriteStories();
+      await this.displayFavoriteStories();
     } else if (currentLinkText === 'all') {
       // display all stories and change link to favorites
       $('#favorites').text('favorites');
-      this.displayAllStories();
+      await this.displayAllStories();
     }
   }
 
-  // retrieve detials on selected story and push to modal
+  // retrieve details on selected story and push to modal
   retrieveStoryDetails(event) {
     // event.relatedTarget grabs button element in story container
     const storyId = $(event.relatedTarget)
@@ -636,7 +618,7 @@ class DomView {
   }
 
   // submit story modification to API
-  submitStoryModification() {
+  async submitStoryModification() {
     const storyId = $('#edit-title').attr('data-storyId');
     const updatedTitle = $('#edit-title').val();
     const updatedUrl = $('#edit-url').val();
@@ -657,24 +639,23 @@ class DomView {
     };
 
     // initiate call api ajax call, then re-render all stories to reflect change
-    this.user.ownStories[targetStoryIdx].update(this.user, storyData, () => {
-      this.displayAllStories();
-    });
+    await this.user.ownStories[targetStoryIdx].update(this.user, storyData);
+    await this.displayAllStories();
   }
 
   // createEventListeners for static DOM elements
-  createEventListeners() {
+  async createEventListeners() {
     /*------------------ Submit Events -------------------*/
     // event listener - submit user creation to API
-    $('#createuser-form').on('submit', this.submitCreateUser.bind(this));
+    $('#createuser-form').on('submit', await this.submitCreateUser.bind(this));
 
     // event listener - submit add story to API
-    $('#new-form').on('submit', this.submitNewStory.bind(this));
+    $('#new-form').on('submit', await this.submitNewStory.bind(this));
 
     // event listener - submit update userprofile request to API
     $('#updateprofile-form').on(
       'submit',
-      this.submitUpdateUserProfile.bind(this)
+      await this.submitUpdateUserProfile.bind(this)
     );
 
     /*------------------ Click Events -------------------*/
@@ -689,24 +670,30 @@ class DomView {
     $('#stories').on(
       'click',
       '.far, .fas',
-      this.toggleStoryFavStatus.bind(this)
+      await this.toggleStoryFavStatus.bind(this)
     );
 
     // event delegation - delete a story the user authored
     $('#stories').on(
       'click',
       '.delete--element',
-      this.submitDeleteStory.bind(this)
+      await this.submitDeleteStory.bind(this)
     );
 
     // event listener - display all stories or just favorites depending on current link
-    $('#favorites').on('click', this.toggleDisplayFavStories.bind(this));
+    $('#favorites').on('click', await this.toggleDisplayFavStories.bind(this));
 
     // event listener for modal popup
-    $('#storyModal').on('show.bs.modal', this.retrieveStoryDetails.bind(this));
+    $('#storyModal').on(
+      'show.bs.modal',
+      await this.retrieveStoryDetails.bind(this)
+    );
 
     // event listener for submitting story modification
-    $('#update-story').on('click', this.submitStoryModification.bind(this));
+    $('#update-story').on(
+      'click',
+      await this.submitStoryModification.bind(this)
+    );
   }
 }
 
@@ -716,12 +703,15 @@ $(function() {
   // const $createuserform = $('#createuser-form');
   // add logic and check jQuery caching areas
 
-  const domView = new DomView();
-  // check for logged in user, then display all user stories
-  domView.checkForLoggedUser(() => {
-    domView.displayAllStories();
-  });
+  runAll();
 
-  // run all event listeners in domView instance
-  domView.createEventListeners();
+  async function runAll() {
+    const domView = new DomView();
+    // check for logged in user, then display all user stories
+    await domView.checkForLoggedUser();
+    await domView.displayAllStories();
+
+    // run all event listeners in domView instance
+    await domView.createEventListeners();
+  }
 });
