@@ -7,45 +7,41 @@ class StoryList {
   }
 
   // downloads most recent 25 stories from api to local StoryList instance
-  static getStories(cb) {
-    $.getJSON(`${API_BASE_URL}/stories`, apiResponse => {
-      const stories = apiResponse.stories.map(story => {
-        const { author, title, url, username, storyId } = story;
-        return new Story(author, title, url, username, storyId);
-      });
-
-      const storyList = new StoryList(stories);
-      return cb(storyList); // return new storyList instance to callback
+  static async getStories() {
+    const apiResponse = await $.getJSON(`${API_BASE_URL}/stories`);
+    const stories = apiResponse.stories.map(story => {
+      const { author, title, url, username, storyId } = story;
+      return new Story(author, title, url, username, storyId);
     });
+
+    const storyList = new StoryList(stories);
+    return storyList; // return new storyList Promise
   }
 
   // method to initiate api call to add a new story
-  addStory(user, story, cb) {
+  async addStory(user, story) {
     const postDataObj = { token: user.loginToken, story };
-
-    $.post(`${API_BASE_URL}/stories`, postDataObj, apiResponse => {
-      user.retrieveDetails(() => cb(apiResponse));
-    });
+    await $.post(`${API_BASE_URL}/stories`, postDataObj);
+    user.retrieveDetails();
   }
 
   // method to initiate api call to remove a story, then syncs api user details with local user
-  removeStory(user, storyId, cb) {
+  async removeStory(user, storyId, cb) {
     const deleteDataObj = { token: user.loginToken };
 
-    $.ajax({
+    await $.ajax({
       url: `${API_BASE_URL}/stories/${storyId}`,
       method: 'DELETE',
-      data: deleteDataObj,
-      success: apiResponse => {
-        // find index of story to remove from local instance of StoryList
-        const storyIndex = this.stories.findIndex(
-          story => story.storyId === storyId
-        );
-        // removes story from local instance
-        this.stories.splice(storyIndex, 1);
-        user.retrieveDetails(() => cb(apiResponse));
-      }
+      data: deleteDataObj
     });
+
+    // find index of story to remove from local instance of StoryList
+    const storyIndex = this.stories.findIndex(
+      story => story.storyId === storyId
+    );
+    // removes story from local instance
+    this.stories.splice(storyIndex, 1);
+    user.retrieveDetails();
   }
 }
 
@@ -61,7 +57,7 @@ class User {
   }
 
   // static function that send a create new user request to API and returns new user to callback
-  static create(username, password, name, cb) {
+  static async create(username, password, name, cb) {
     const userDataObj = {
       user: {
         name,
@@ -70,97 +66,91 @@ class User {
       }
     };
 
-    $.post(`${API_BASE_URL}/signup`, userDataObj, apiResponse => {
-      const { username, name, favorites, stories } = apiResponse.user;
+    const apiResponse = await $.post(`${API_BASE_URL}/signup`, userDataObj);
+    const { username, name, favorites, stories } = apiResponse.user;
 
-      // items to save to localStorage to check for logged in user
-      localStorage.setItem('token', apiResponse.token);
-      localStorage.setItem('username', username);
+    // items to save to localStorage to check for logged in user
+    localStorage.setItem('token', apiResponse.token);
+    localStorage.setItem('username', username);
 
-      const user = new User(
-        username,
-        password,
-        name,
-        apiResponse.token,
-        favorites,
-        stories
-      );
-      return cb(user);
-    });
+    return new User(
+      username,
+      password,
+      name,
+      apiResponse.token,
+      favorites,
+      stories
+    );
   }
 
   // method for API request to log the user in and retrieves user token
-  login(cb) {
+  async login(cb) {
     let loginDataObj = {
       user: {
         username: this.username,
         password: this.password
       }
     };
-    $.post(`${API_BASE_URL}/login`, loginDataObj, apiResponse => {
-      this.loginToken = apiResponse.token;
+    const apiResponse = await $.post(`${API_BASE_URL}/login`, loginDataObj);
+    this.loginToken = apiResponse.token;
 
-      // store items in local storage
-      localStorage.setItem('token', apiResponse.token);
-      localStorage.setItem('username', this.username);
-      return cb(apiResponse);
-    });
+    // store items in local storage
+    localStorage.setItem('token', apiResponse.token);
+    localStorage.setItem('username', this.username);
   }
 
   // make a request to the API to get updated info about a single user incl favs and own stories
-  retrieveDetails(cb) {
+  async retrieveDetails(cb) {
     const getDataObj = {
       token: this.loginToken
     };
 
-    $.get(`${API_BASE_URL}/users/${this.username}`, getDataObj, apiResponse => {
-      this.name = apiResponse.user.name;
-      this.favorites = apiResponse.user.favorites;
-      this.ownStories = apiResponse.user.stories;
+    const apiResponse = await $.get(
+      `${API_BASE_URL}/users/${this.username}`,
+      getDataObj
+    );
+    this.name = apiResponse.user.name;
+    this.favorites = apiResponse.user.favorites;
+    this.ownStories = apiResponse.user.stories;
 
-      // takes api response stories and maps them into Story instances
-      this.ownStories = apiResponse.user.stories.map(story => {
-        const { author, title, url, username, storyId } = story;
-        return new Story(author, title, url, username, storyId);
-      });
-
-      return cb(this); // callback returns user instance
+    // takes api response stories and maps them into Story instances
+    this.ownStories = apiResponse.user.stories.map(story => {
+      const { author, title, url, username, storyId } = story;
+      return new Story(author, title, url, username, storyId);
     });
   }
 
   // make an API request to add a story to the user’s favorites
-  addFavorite(storyId, cb) {
+  async addFavorite(storyId, cb) {
     const postDataObj = {
       token: this.loginToken
     };
 
-    $.post(
+    await $.post(
       `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
-      postDataObj,
-      apiResponse => {
-        this.retrieveDetails(() => cb(apiResponse)); // returns api response to callback
-      }
+      postDataObj
     );
+
+    this.retrieveDetails(); // returns api response to callback
   }
 
   // make an API request to remove a story to the user’s favorites
-  removeFavorite(storyId, cb) {
+  async removeFavorite(storyId, cb) {
     let deleteDataObj = {
       token: this.loginToken
     };
 
-    $.ajax({
+    await $.ajax({
       url: `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
       method: 'DELETE',
-      data: deleteDataObj,
-      success: apiResponse => {
-        this.retrieveDetails(() => cb(apiResponse)); // returns api response to callback
-      }
+      data: deleteDataObj
     });
+
+    this.retrieveDetails(); // returns api response to callback
   }
 
   // make an API request to update a story
-  update(userData, cb) {
+  async update(userData, cb) {
     const patchDataObj = {
       token: this.loginToken,
       user: userData
@@ -169,24 +159,21 @@ class User {
     $.ajax({
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'PATCH',
-      data: patchDataObj,
-      success: apiResponse => {
-        this.retrieveDetails(() => cb(apiResponse)); // returns apiResponse to callback
-      }
+      data: patchDataObj
     });
+    this.retrieveDetails(); // returns apiResponse to callback
   }
 
   // make an API request to remove a user
-  remove(cb) {
+  async remove(cb) {
     const deleteDataObj = {
       token: this.loginToken
     };
 
-    $.ajax({
+    await $.ajax({
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'DELETE',
-      data: deleteDataObj,
-      success: apiResponse => cb(apiResponse) // returns apiResponse to callback
+      data: deleteDataOb
     });
   }
 }
@@ -202,16 +189,15 @@ class Story {
   }
 
   // make an API request to update a story
-  update(user, storyData, cb) {
+  async update(user, storyData, cb) {
     let patchDataObj = { token: user.loginToken, story: storyData };
 
-    $.ajax({
+    await $.ajax({
       url: `${API_BASE_URL}/stories/${this.storyId}`,
       method: 'PATCH',
-      data: patchDataObj,
-      success: apiResponse => user.retrieveDetails(() => cb(apiResponse))
-      // returns apiResponse to callback
+      data: patchDataObj
     });
+    user.retrieveDetails();
   }
 }
 
@@ -223,17 +209,15 @@ class DomView {
   }
 
   // calls getStories and displays most recent list of stories to DOM
-  displayAllStories() {
+  async displayAllStories() {
     // delete all existing stories in parent container
     $('#stories').empty();
 
-    StoryList.getStories(storyList => {
-      this.storyList = storyList;
+    this.storyList = await StoryList.getStories();
 
-      // we have the stories, iterate over stories array and display each story
-      this.storyList.stories.forEach(storyObj => {
-        this.displaySingleStory(storyObj);
-      });
+    // we have the stories, iterate over stories array and display each story
+    this.storyList.stories.forEach(storyObj => {
+      this.displaySingleStory(storyObj);
     });
   }
 
