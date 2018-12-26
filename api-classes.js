@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://hack-or-snooze-v2.herokuapp.com';
+const API_BASE_URL = 'https://hack-or-snooze-api.herokuapp.com';
 
 /* instances contain a recent list a stories with methods to download, add & remove*/
 class StoryList {
@@ -10,8 +10,10 @@ class StoryList {
   static async getStories() {
     const apiResponse = await $.ajax({
       url: `${API_BASE_URL}/stories`,
-      method: 'GET'
+      method: 'GET',
+      error: ajaxErrorOutput
     });
+
     const stories = apiResponse.stories.map(story => {
       const { author, title, url, username, storyId } = story;
       return new Story(author, title, url, username, storyId);
@@ -23,30 +25,33 @@ class StoryList {
 
   // method to initiate api call to add a new story
   async addStory(user, story) {
-    const postDataObj = { token: user.loginToken, story };
+    const postDataObj = { story };
+    // const postDataObj = { token: user.loginToken, story };
 
     await $.ajax({
+      headers: { Authorization: `Bearer ${user.loginToken}` },
       url: `${API_BASE_URL}/stories`,
       method: 'POST',
-      data: postDataObj
+      data: postDataObj,
+      error: ajaxErrorOutput
     });
-
     await user.retrieveDetails();
   }
 
   // method to initiate api call to remove a story, then syncs api user details with local user
   async removeStory(user, storyId) {
-    const deleteDataObj = { token: user.loginToken };
+    // const deleteDataObj = { token: user.loginToken };
 
     await $.ajax({
+      headers: { Authorization: `Bearer ${user.loginToken}` },
       url: `${API_BASE_URL}/stories/${storyId}`,
       method: 'DELETE',
-      data: deleteDataObj
+      error: ajaxErrorOutput
     });
 
     // find index of story to remove from local instance of StoryList
     const storyIndex = this.stories.findIndex(
-      story => story.storyId === storyId
+      story => story.storyId === +storyId
     );
     // removes story from local instance
     this.stories.splice(storyIndex, 1);
@@ -77,7 +82,8 @@ class User {
     const apiResponse = await $.ajax({
       url: `${API_BASE_URL}/signup`,
       method: 'POST',
-      data: userDataObj
+      data: userDataObj,
+      error: ajaxErrorOutput
     });
 
     // items to save to localStorage to check for logged in user
@@ -105,7 +111,8 @@ class User {
     const apiResponse = await $.ajax({
       url: `${API_BASE_URL}/login`,
       method: 'POST',
-      data: loginDataObj
+      data: loginDataObj,
+      error: ajaxErrorOutput
     });
 
     this.loginToken = apiResponse.token;
@@ -117,14 +124,15 @@ class User {
 
   // make a request to the API to get updated info about a single user incl favs and own stories
   async retrieveDetails() {
-    const getDataObj = {
-      token: this.loginToken
-    };
+    // const getDataObj = {
+    //   token: this.loginToken
+    // };
 
     const apiResponse = await $.ajax({
+      headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'GET',
-      data: getDataObj
+      error: ajaxErrorOutput
     });
 
     this.name = apiResponse.user.name;
@@ -140,14 +148,15 @@ class User {
 
   // make an API request to add a story to the user’s favorites
   async addFavorite(storyId) {
-    const postDataObj = {
-      token: this.loginToken
-    };
+    // const postDataObj = {
+    //   token: this.loginToken
+    // };
 
     await $.ajax({
+      headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
       method: 'POST',
-      data: postDataObj
+      error: ajaxErrorOutput
     });
 
     await this.retrieveDetails(); // returns api response to callback
@@ -155,14 +164,15 @@ class User {
 
   // make an API request to remove a story to the user’s favorites
   async removeFavorite(storyId) {
-    let deleteDataObj = {
-      token: this.loginToken
-    };
+    // let deleteDataObj = {
+    //   token: this.loginToken
+    // };
 
     await $.ajax({
+      headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
       method: 'DELETE',
-      data: deleteDataObj
+      error: ajaxErrorOutput
     });
 
     await this.retrieveDetails(); // returns api response to callback
@@ -171,28 +181,34 @@ class User {
   // make an API request to update a story
   async update(userData) {
     const patchDataObj = {
-      token: this.loginToken,
       user: userData
     };
+    // const patchDataObj = {
+    //   token: this.loginToken,
+    //   user: userData
+    // };
 
     $.ajax({
+      headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'PATCH',
-      data: patchDataObj
+      data: patchDataObj,
+      error: ajaxErrorOutput
     });
     await this.retrieveDetails(); // returns apiResponse to callback
   }
 
   // make an API request to remove a user
   async remove() {
-    const deleteDataObj = {
-      token: this.loginToken
-    };
+    // const deleteDataObj = {
+    //   token: this.loginToken
+    // };
 
     await $.ajax({
+      headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'DELETE',
-      data: deleteDataObj
+      error: ajaxErrorOutput
     });
   }
 }
@@ -209,12 +225,15 @@ class Story {
 
   // make an API request to update a story
   async update(user, storyData) {
-    let patchDataObj = { token: user.loginToken, story: storyData };
+    let patchDataObj = { story: storyData };
+    // let patchDataObj = { token: user.loginToken, story: storyData };
 
     await $.ajax({
+      headers: { Authorization: `Bearer ${user.loginToken}` },
       url: `${API_BASE_URL}/stories/${this.storyId}`,
       method: 'PATCH',
-      data: patchDataObj
+      data: patchDataObj,
+      error: ajaxErrorOutput
     });
     await user.retrieveDetails();
   }
@@ -354,7 +373,7 @@ class DomView {
     }
     // finds the index of the story user's ownStories array that matches targetStoryId
     const storyObjIndex = this.user.ownStories.findIndex(storyObj => {
-      return storyObj.storyId === targetStoryId;
+      return storyObj.storyId === +targetStoryId;
     });
     // if targetStoryId is not found in ownStories, return false, otherwise true
     if (storyObjIndex === -1) {
@@ -371,7 +390,7 @@ class DomView {
     }
     // finds the index of the storyObj in the favorites array that matches targetStoryId
     const storyObjIndex = this.user.favorites.findIndex(storyObj => {
-      return storyObj.storyId === targetStoryId;
+      return storyObj.storyId === +targetStoryId;
     });
     // if targetStoryId is not found in favoriteStories, return false, otherwise true
     if (storyObjIndex === -1) {
@@ -624,7 +643,7 @@ class DomView {
 
     // obtain index in user ownStories with matching ID
     const targetStoryIdx = this.user.ownStories.findIndex(story => {
-      return story.storyId === storyId;
+      return story.storyId === +storyId;
     });
 
     const title = this.user.ownStories[targetStoryIdx].title;
@@ -646,7 +665,7 @@ class DomView {
 
     // find story in ownStoriesIdx for AJAX Call
     const targetStoryIdx = this.user.ownStories.findIndex(story => {
-      return story.storyId === storyId;
+      return story.storyId === +storyId;
     });
 
     // modified story data obj for sending to API
@@ -733,3 +752,12 @@ $(function() {
     await domView.createEventListeners();
   }
 });
+
+function ajaxErrorOutput(jqXHR, textStatus, errorThrown) {
+  console.log('jqXHR:');
+  console.log(jqXHR);
+  console.log('textStatus:');
+  console.log(textStatus);
+  console.log('errorThrown:');
+  console.log(errorThrown);
+}
