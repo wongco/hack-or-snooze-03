@@ -8,7 +8,10 @@ class StoryList {
 
   // downloads most recent 25 stories from api to local StoryList instance
   static async getStories() {
-    const apiResponse = await $.getJSON(`${API_BASE_URL}/stories`);
+    const apiResponse = await $.ajax({
+      url: `${API_BASE_URL}/stories`,
+      method: 'GET'
+    });
     const stories = apiResponse.stories.map(story => {
       const { author, title, url, username, storyId } = story;
       return new Story(author, title, url, username, storyId);
@@ -21,7 +24,13 @@ class StoryList {
   // method to initiate api call to add a new story
   async addStory(user, story) {
     const postDataObj = { token: user.loginToken, story };
-    await $.post(`${API_BASE_URL}/stories`, postDataObj);
+
+    await $.ajax({
+      url: `${API_BASE_URL}/stories`,
+      method: 'POST',
+      data: postDataObj
+    });
+
     await user.retrieveDetails();
   }
 
@@ -65,8 +74,11 @@ class User {
       }
     };
 
-    const apiResponse = await $.post(`${API_BASE_URL}/signup`, userDataObj);
-    // const { username, name, favorites, stories } = apiResponse.user;
+    const apiResponse = await $.ajax({
+      url: `${API_BASE_URL}/signup`,
+      method: 'POST',
+      data: userDataObj
+    });
 
     // items to save to localStorage to check for logged in user
     localStorage.setItem('token', apiResponse.token);
@@ -89,7 +101,13 @@ class User {
         password
       }
     };
-    const apiResponse = await $.post(`${API_BASE_URL}/login`, loginDataObj);
+
+    const apiResponse = await $.ajax({
+      url: `${API_BASE_URL}/login`,
+      method: 'POST',
+      data: loginDataObj
+    });
+
     this.loginToken = apiResponse.token;
 
     // store items in local storage
@@ -103,10 +121,12 @@ class User {
       token: this.loginToken
     };
 
-    const apiResponse = await $.get(
-      `${API_BASE_URL}/users/${this.username}`,
-      getDataObj
-    );
+    const apiResponse = await $.ajax({
+      url: `${API_BASE_URL}/users/${this.username}`,
+      method: 'GET',
+      data: getDataObj
+    });
+
     this.name = apiResponse.user.name;
     this.favorites = apiResponse.user.favorites;
     this.ownStories = apiResponse.user.stories;
@@ -124,10 +144,11 @@ class User {
       token: this.loginToken
     };
 
-    await $.post(
-      `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
-      postDataObj
-    );
+    await $.ajax({
+      url: `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      method: 'POST',
+      data: postDataObj
+    });
 
     await this.retrieveDetails(); // returns api response to callback
   }
@@ -171,7 +192,7 @@ class User {
     await $.ajax({
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'DELETE',
-      data: deleteDataOb
+      data: deleteDataObj
     });
   }
 }
