@@ -1,4 +1,4 @@
-import { extractHostName } from '../helpers/classHelpers.js';
+import { extractHostName, hideAllContainers } from '../helpers/classHelpers.js';
 import { StoryList } from './StoryList.js';
 import { User } from './User.js';
 
@@ -146,8 +146,10 @@ export class DomView {
   }
 
   // submits login info from form to API
-  async loginUserSubmission() {
-    event.preventDefault();
+  async loginUserSubmission(event) {
+    if (event) {
+      event.preventDefault();
+    }
     const $username = $('#username');
     const $password = $('#password');
     const usernameInput = $username.val();
@@ -198,7 +200,7 @@ export class DomView {
       await this.user.retrieveDetails();
 
       // Display Username as Link on Nav
-      $('#profile').text(username);
+      $('#profile').text(this.user.name);
     } else {
       // User token does not exist. dynamically hide/show elements
       $('#addStory').hide();
@@ -242,7 +244,7 @@ export class DomView {
 
     // submit data to API for adding new story
     await this.storyList.addStory(this.user, storyDataObj);
-    $('#new-form').slideToggle();
+    $('#new-form').slideUp();
     await this.user.retrieveDetails();
     $('#title').val('');
     $('#url').val('');
@@ -255,10 +257,13 @@ export class DomView {
     const name = $('#updateprofile-displayname').val();
     const password = $('#updateprofile-password').val();
 
-    const patchDataObj = {
-      name,
-      password
+    let patchDataObj = {
+      name
     };
+
+    if (password) {
+      patchDataObj.password = password;
+    }
 
     // send api request, then hide user profile change form and update username in navbar
     await this.user.update(patchDataObj);
@@ -401,6 +406,9 @@ export class DomView {
       event.preventDefault();
       const username = $('#recovery-username').val();
 
+      // add recovery-username to localStorage
+      localStorage.setItem('recovery-username', username);
+
       // send recovery request - async is fine
       User.sendRecoveryCode(username);
 
@@ -409,6 +417,39 @@ export class DomView {
       $('#recovery-username').val('');
       setTimeout(() => {
         $('#reset-form-flash').text('');
+      }, 5000);
+    });
+
+    $('#validate-form').submit(async event => {
+      event.preventDefault();
+      const code = $('#validate-code').val();
+      const password = $('#validate-newpassword').val();
+
+      // retrieve username from localStorage
+      const username = localStorage.getItem('recovery-username');
+
+      let message = await User.resetPassword(code, username, password);
+
+      let shouldLogin = false;
+      if (message === 'Successfully updated password.') {
+        shouldLogin = true;
+        message = `${message} Logging you in...`;
+      }
+      // flash message and clear after timeout
+      $('#validate-form-flash').text(message);
+
+      // clear old input
+      $('#validate-code').val('');
+      $('#validate-newpassword').val('');
+
+      setTimeout(() => {
+        if (shouldLogin === true) {
+          $('#resetpassword-formgroup').slideUp();
+          $('#username').val(username);
+          $('#password').val(password);
+          this.loginUserSubmission.call(this);
+        }
+        $('#validate-form-flash').text('');
       }, 5000);
     });
 
@@ -431,6 +472,7 @@ export class DomView {
     // event listener - log out user
     $('#logout-button').click(await this.logUserOut.bind(this));
 
+    // event lisetner - toggle recovery password form
     $('#reset-button').click(() => {
       $('#resetpassword-formgroup').slideToggle();
     });

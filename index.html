@@ -42,12 +42,14 @@
         <span id="loginContainer">
           <form class="form-inline my-2 my-lg-0" id="nouserlogged-nav">
             <input
+              required
               class="form-control mr-sm-2"
               type="text"
               placeholder="Username"
               id="username"
             />
             <input
+              required
               class="form-control mr-sm-2"
               type="password"
               placeholder="Password"
@@ -83,7 +85,7 @@
     </nav>
 
     <!-- --------------- Reset Password Validation Form ------------ -->
-    <div id="resetpassword-formgroup">
+    <div id="resetpassword-formgroup" class="slide-container">
       <div class="pl-4">
         <form class="form-horizontal pb-0" id="reset-form">
           <div class="form-group row">
@@ -127,157 +129,162 @@
               />
             </div>
             <button type="submit" class="btn btn-danger">submit</button>
-            <div id="validate-form-flash"></div>
+            <div id="validate-form-flash" class="align-self-center pl-4"></div>
           </div>
         </form>
       </div>
 
     </div>
     <!-- --------------- Add Story Link Form ------------ -->
-    <div id="new-form">
-      <form class="form-horizontal">
-        <div class="form-group row">
-          <label for="title" class="pl-4 col-sm-1 form-label">title</label>
-          <div class="col-sm-6">
-            <input
-              required
-              type="text"
-              class="form-control"
-              id="title"
-              autocomplete="off"
-            />
+    <div id="new-form" class="slide-container">
+      <div class="pl-4">
+        <form class="form-horizontal">
+          <div class="form-group row">
+            <label for="title" class="col-sm-1 form-label">title</label>
+            <div class="col-sm-6">
+              <input
+                required
+                type="text"
+                class="form-control"
+                id="title"
+                autocomplete="off"
+              />
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="url" class="pl-4 col-sm-1 form-label">url</label>
-          <div class="col-sm-6">
-            <input
-              required
-              type="url"
-              class="form-control"
-              id="url"
-              autocomplete="off"
-            />
+          <div class="form-group row">
+            <label for="url" class="col-sm-1 form-label">url</label>
+            <div class="col-sm-6">
+              <input
+                required
+                type="url"
+                class="form-control"
+                id="url"
+                autocomplete="off"
+              />
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <div class="col-sm-offset-2 col-sm-10">
-            <button type="submit" class="btn btn-primary">submit story</button>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type="submit" class="btn btn-primary">submit story</button>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
 
     <!-- --------------- Create New User Form ------------ -->
-    <div id="createuser-form">
-      <form class="form-horizontal">
-        <div class="form-group row">
-          <label for="create-displayname" class="pl-4 col-sm-2 form-label"
-            >Display Name</label
-          >
-          <div class="col-sm-6">
-            <input
-              required
-              type="text"
-              class="form-control"
-              id="create-displayname"
-              autocomplete="off"
-            />
+    <div id="createuser-form" class="slide-container">
+      <div class="pl-4">
+        <form class="form-horizontal">
+          <div class="form-group row">
+            <label for="create-displayname" class="col-sm-2 form-label align-self-center"
+              >Display Name</label
+            >
+            <div class="col-sm-6">
+              <input
+                required
+                type="text"
+                class="form-control"
+                id="create-displayname"
+                autocomplete="off"
+              />
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="createuser-username" class="pl-4 col-sm-2 form-label"
-            >Username</label
-          >
-          <div class="col-sm-6">
-            <input
-              required
-              type="text"
-              class="form-control"
-              id="create-username"
-              autocomplete="off"
-            />
+          <div class="form-group row">
+            <label for="createuser-username" class="col-sm-2 form-label align-self-center"
+              >Username</label
+            >
+            <div class="col-sm-6">
+              <input
+                required
+                type="text"
+                class="form-control"
+                id="create-username"
+                autocomplete="off"
+              />
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="create-password" class="pl-4 col-sm-2 form-label"
-            >Password</label
-          >
-          <div class="col-sm-6">
-            <input
-              required
-              type="password"
-              class="form-control"
-              id="create-password"
-              autocomplete="off"
-            />
+          <div class="form-group row">
+            <label for="create-password" class="col-sm-2 form-label align-self-center"
+              >Password</label
+            >
+            <div class="col-sm-6">
+              <input
+                required
+                type="password"
+                class="form-control"
+                id="create-password"
+                autocomplete="off"
+              />
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <div class="col-sm-offset-2 col-sm-10">
-            <button type="submit" class="btn btn-primary">Submit</button>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
 
     <!-- --------------- Profile User Form ------------ -->
-    <div id="updateprofile-form">
-      <form class="form-horizontal">
-        <div class="form-group row">
-          <label for="updateprofile-username" class="pl-4 col-sm-2 form-label"
-            >Username</label
-          >
-          <div class="col-sm-6">
-            <input
-              readonly
-              type="text"
-              class="form-control"
-              id="updateprofile-username"
-              autocomplete="off"
-            />
+    <div id="updateprofile-form" class="slide-container">
+      <div class="pl-4">
+        <form class="form-horizontal">
+          <div class="form-group row">
+            <label for="updateprofile-username" class="col-sm-2 form-label align-self-center"
+              >Username</label
+            >
+            <div class="col-sm-6">
+              <input
+                readonly
+                type="text"
+                class="form-control"
+                id="updateprofile-username"
+                autocomplete="off"
+              />
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label
-            for="updateprofile-displayname"
-            class="pl-4 col-sm-2 form-label"
-            >Display Name</label
-          >
-          <div class="col-sm-6">
-            <input
-              required
-              type="text"
-              class="form-control"
-              id="updateprofile-displayname"
-              autocomplete="off"
-            />
+          <div class="form-group row">
+            <label
+              for="updateprofile-displayname"
+              class="col-sm-2 form-label align-self-center"
+              >Display Name</label
+            >
+            <div class="col-sm-6">
+              <input
+                required
+                type="text"
+                class="form-control"
+                id="updateprofile-displayname"
+                autocomplete="off"
+              />
+            </div>
           </div>
-        </div>
-        <div class="form-group row">
-          <label for="updateprofile-password" class="pl-4 col-sm-2 form-label"
-            >Password</label
-          >
-          <div class="col-sm-6">
-            <input
-              required
-              type="password"
-              class="form-control"
-              id="updateprofile-password"
-              autocomplete="off"
-              placeholder="enter new password"
-            />
-            <!-- Potentially add another field to confirm password -->
+          <div class="form-group row">
+            <label for="updateprofile-password" class="col-sm-2 form-label align-self-center"
+              >Update Password </label
+            >
+            <div class="col-sm-6">
+              <input
+                type="password"
+                class="form-control"
+                id="updateprofile-password"
+                autocomplete="off"
+                placeholder="enter new password (optional)"
+              />
+              <!-- Potentially add another field to confirm password -->
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <div class="col-sm-offset-2 col-sm-10">
-            <button type="submit" class="btn btn-primary">
-              Update Profile
-            </button>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type="submit" class="btn btn-primary">
+                Update Profile
+              </button>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
 
     <ol id="stories">

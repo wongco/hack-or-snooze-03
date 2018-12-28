@@ -25,4 +25,8 @@ function extractHostName(url) {
   return hostname;
 }
 
-export { ajaxErrorOutput, extractHostName };
+function hideAllContainers() {
+  $('.slide-container').slideUp();
+}
+
+export { ajaxErrorOutput, extractHostName, hideAllContainers };
