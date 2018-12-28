@@ -54,13 +54,13 @@ export class DomView {
     let favoriteClassString;
     if (this.user.name === undefined) {
       // user is not logged in, hide favorites element
-      favoriteClassString = 'far fa-star element--hide';
+      favoriteClassString = 'element--hide';
     } else if (this.isStoryInUserFavorites(storyObj.storyId)) {
       // user is logged in, story is in favorites, show solid star
-      favoriteClassString = 'fas fa-star';
+      favoriteClassString = 'fas fa-star px-1';
     } else {
       // user is logged in, story is not in favorites, show outline of star
-      favoriteClassString = 'far fa-star';
+      favoriteClassString = 'far fa-star px-1';
     }
 
     // render story element to dom container
@@ -160,6 +160,11 @@ export class DomView {
     // send API call to login, retrieve user details, get recent stories then
     //     render logged in state, displayAllStories
     await this.user.login(passwordInput);
+
+    // store items in local storage
+    localStorage.setItem('token', this.user.loginToken);
+    localStorage.setItem('username', this.user.username);
+
     await this.user.retrieveDetails();
     this.storyList = await StoryList.getStories();
     await this.checkForLoggedUser();
@@ -172,7 +177,10 @@ export class DomView {
 
   // make a request to API to log user out
   async logUserOut() {
+    // empty user info in localStorage
     localStorage.clear();
+
+    hideAllContainers();
     // delete all Local User Data
     this.user = new User();
     // rerender full stories
@@ -214,17 +222,33 @@ export class DomView {
   // submits create user request to API
   async submitCreateUser(event) {
     event.preventDefault();
+    const $createDisplayName = $('#create-displayname');
+    const $createUsername = $('#create-username');
+    const $createPassword = $('#create-password');
+    const $createPhone = $('#create-phone');
 
     // grab values from create user forms
-    const name = $('#create-displayname').val();
-    const username = $('#create-username').val();
-    const password = $('#create-password').val();
+    const name = $createDisplayName.val();
+    const username = $createUsername.val();
+    const password = $createPassword.val();
+    const phone = $createPhone.val();
 
     // submit data to API for user creation
-    User.create(username, password, name);
+    const user = await User.create({ username, password, name, phone });
+
+    // items to save to localStorage to check for logged in user
+    localStorage.setItem('token', user.loginToken);
+    localStorage.setItem('username', user.username);
+
     $('#createuser-form').slideUp();
     await this.checkForLoggedUser();
     await this.displayAllStories();
+
+    // clear out values
+    $createDisplayName.val('');
+    $createUsername.val('');
+    $createPassword.val('');
+    $createPhone.val('');
   }
 
   // submits add new story request to API
@@ -428,27 +452,39 @@ export class DomView {
       // retrieve username from localStorage
       const username = localStorage.getItem('recovery-username');
 
-      let message = await User.resetPassword(code, username, password);
+      let result = await User.resetPassword(code, username, password);
 
       let shouldLogin = false;
-      if (message === 'Successfully updated password.') {
+      if (result.message === 'Successfully updated password.') {
         shouldLogin = true;
-        message = `${message} Logging you in...`;
+        result.message = `${result.message} Logging you in...`;
       }
       // flash message and clear after timeout
-      $('#validate-form-flash').text(message);
+      $('#validate-form-flash').text(result.message);
 
       // clear old input
       $('#validate-code').val('');
       $('#validate-newpassword').val('');
 
-      setTimeout(() => {
+      setTimeout(async () => {
         if (shouldLogin === true) {
           $('#resetpassword-formgroup').slideUp();
-          $('#username').val(username);
-          $('#password').val(password);
-          this.loginUserSubmission.call(this);
+          // remove recovery-username from local storage
+          localStorage.removeItem('recovery-username');
+
+          // save username to localStorage and user instance
+          localStorage.setItem('username', username);
+          this.user.username = username;
+
+          // save token to user instance and localStorage
+          await this.user.login(password);
+          localStorage.setItem('token', this.user.loginToken);
+
+          await this.user.retrieveDetails();
+          await this.checkForLoggedUser();
+          await this.displayAllStories();
         }
+        // clear flash text
         $('#validate-form-flash').text('');
       }, 5000);
     });

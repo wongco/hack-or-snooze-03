@@ -13,14 +13,19 @@ export class User {
   }
 
   // static function that send a create new user request to API and returns new user
-  static async create(username, password, name) {
-    const userDataObj = {
+  static async create({ username, password, name, phone }) {
+    let userDataObj = {
       user: {
         name,
         username,
         password
       }
     };
+
+    // if phone exists, add to payload
+    if (phone) {
+      userDataObj.user.phone = phone;
+    }
 
     const apiResponse = await $.ajax({
       url: `${API_BASE_URL}/signup`,
@@ -29,16 +34,12 @@ export class User {
       error: ajaxErrorOutput
     });
 
-    // items to save to localStorage to check for logged in user
-    localStorage.setItem('token', apiResponse.token);
-    localStorage.setItem('username', apiResponse.username);
-
     return new User(
-      apiResponse.username,
-      apiResponse.name,
+      apiResponse.user.username,
+      apiResponse.user.name,
       apiResponse.token,
-      apiResponse.favorites,
-      apiResponse.stories
+      apiResponse.user.favorites,
+      apiResponse.user.stories
     );
   }
 
@@ -164,6 +165,6 @@ export class User {
     } catch (error) {
       result = error.responseJSON.error;
     }
-    return result.message;
+    return result;
   }
 }

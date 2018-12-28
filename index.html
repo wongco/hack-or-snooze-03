@@ -86,10 +86,11 @@
 
     <!-- --------------- Reset Password Validation Form ------------ -->
     <div id="resetpassword-formgroup" class="slide-container">
-      <div class="pl-4">
+      <div class="px-4">
         <form class="form-horizontal pb-0" id="reset-form">
+          <h4>Step 1: Submit request with username only</h4>
           <div class="form-group row">
-            <label for="title" class="col-sm-2 form-label align-self-center">Recovery Username</label>
+            <label for="title" class="col-sm-2 form-label align-self-center">Username</label>
             <div class="col-sm-3">
               <input
                 required
@@ -97,14 +98,16 @@
                 class="form-control"
                 id="recovery-username"
                 autocomplete="off"
+                placeholder = "username"
               />
             </div>
             <button type="submit" class="btn btn-danger">submit</button>
             <div id="reset-form-flash" class="align-self-center pl-4"></div>
           </div>
         </form>
-  
+        <hr>
         <form class="form-horizontal pt-0" id="validate-form">
+          <h4>Step 2: Type in recovery code and new password</h4>
           <div class="form-group row">
             <label for="title" class="col-sm-2 form-label align-self-center">SMS Code</label>
             <div class="col-sm-3">
@@ -114,6 +117,7 @@
                 class="form-control"
                 id="validate-code"
                 autocomplete="off"
+                placeholder="6 digit code"
               />
             </div>
           </div>
@@ -126,6 +130,7 @@
                 class="form-control"
                 id="validate-newpassword"
                 autocomplete="off"
+                placeholder="new password"
               />
             </div>
             <button type="submit" class="btn btn-danger">submit</button>
@@ -187,6 +192,7 @@
                 class="form-control"
                 id="create-displayname"
                 autocomplete="off"
+                placeholder="Jane Smith"
               />
             </div>
           </div>
@@ -201,6 +207,7 @@
                 class="form-control"
                 id="create-username"
                 autocomplete="off"
+                placeholder="username (3 letters or more)"
               />
             </div>
           </div>
@@ -215,6 +222,23 @@
                 class="form-control"
                 id="create-password"
                 autocomplete="off"
+                placeholder="password"
+              />
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="create-password" class="col-sm-2 form-label align-self-center"
+              >Recovery Cell</label
+            >
+            <div class="col-sm-6">
+              <input
+                type="tel"
+                id="create-phone"
+                name="create-phone"
+                class="form-control"
+                pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                autocomplete="off"
+                placeholder='(Optional): 123-456-7890'
               />
             </div>
           </div>

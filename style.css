@@ -1,4 +1,4 @@
-/* BootStrap Overrides */
+/** BootStrap Overrides */
 
 /* --------------------
 -----Body Wide CSS-----
@@ -8,6 +8,10 @@ body {
   margin: 8px;
 }
 
+/* Hide Elements during Initial Rendering */
+.element--hide,
+#nouserlogged-nav,
+#userlogged-nav,
 .slide-container {
   display: none;
 }
