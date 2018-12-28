@@ -282,10 +282,15 @@ export class DomView {
   }
 
   // submits create user profile modification request to API
-  async submitUpdateUserProfile() {
+  async submitUpdateUserProfile(event) {
+    event.preventDefault();
+
     // grab the values from the submit user changes form
-    const name = $('#updateprofile-displayname').val();
-    const password = $('#updateprofile-password').val();
+    const $updateProfileDisplayName = $('#updateprofile-displayname');
+    const $updateProfilePassword = $('#updateprofile-password');
+
+    const name = $updateProfileDisplayName.val();
+    const password = $updateProfilePassword.val();
 
     let patchDataObj = {
       name
@@ -299,6 +304,9 @@ export class DomView {
     await this.user.update(patchDataObj);
     $('#updateprofile-form').slideUp();
     $('#profile').text(name);
+
+    $updateProfileDisplayName.val('');
+    $updateProfilePassword.val('');
 
     // TODO future: if you show username/name details in the stories, have to re-render stories
     // TODO future: confirm old password to create new password on file
