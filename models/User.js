@@ -60,10 +60,6 @@ export class User {
     });
 
     this.loginToken = apiResponse.token;
-
-    // store items in local storage
-    localStorage.setItem('token', apiResponse.token);
-    localStorage.setItem('username', this.username);
   }
 
   // make a request to the API to get updated info about a single user incl favs and own stories

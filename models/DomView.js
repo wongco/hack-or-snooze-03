@@ -170,7 +170,8 @@ export class DomView {
     await this.checkForLoggedUser();
     await this.displayAllStories();
 
-    // clear fields after successful login
+    // clear fields after successful login & close open containers
+    hideAllContainers();
     $username.val('');
     $password.val('');
   }
@@ -210,11 +211,14 @@ export class DomView {
       // Display Username as Link on Nav
       $('#profile').text(this.user.name);
     } else {
-      // User token does not exist. dynamically hide/show elements
+      // show navbar buttons for no logged in user
+      $('#nouserlogged-nav').show();
+
+      // hide navbar links
       $('#addStory').hide();
       $('#favorites').hide();
-      $('#nouserlogged-nav').show();
       $('#userlogged-nav').hide();
+      // remove name from profile button
       $('#profile').empty();
     }
   }
@@ -240,11 +244,11 @@ export class DomView {
     localStorage.setItem('token', user.loginToken);
     localStorage.setItem('username', user.username);
 
-    $('#createuser-form').slideUp();
     await this.checkForLoggedUser();
     await this.displayAllStories();
 
     // clear out values
+    hideAllContainers();
     $createDisplayName.val('');
     $createUsername.val('');
     $createPassword.val('');
@@ -268,11 +272,13 @@ export class DomView {
 
     // submit data to API for adding new story
     await this.storyList.addStory(this.user, storyDataObj);
-    $('#new-form').slideUp();
     await this.user.retrieveDetails();
+    await this.displayAllStories();
+
+    // clear values and hide containers
+    hideAllContainers();
     $('#title').val('');
     $('#url').val('');
-    await this.displayAllStories();
   }
 
   // submits create user profile modification request to API
@@ -329,10 +335,6 @@ export class DomView {
       $(event.target).toggleClass('far fas');
       await this.user.retrieveDetails();
     }
-
-    // Optional TODO, you may want to rerender favorites page after toggles
-    //   need to pull current text value of favorites link to determine which view to rerender
-    //       displayfavorites or displayall
   }
 
   // submits delete story request to API
@@ -446,13 +448,16 @@ export class DomView {
 
     $('#validate-form').submit(async event => {
       event.preventDefault();
-      const code = $('#validate-code').val();
-      const password = $('#validate-newpassword').val();
+      const $validateFromFlash = $('#validate-form-flash');
+      const $validateCode = $('#validate-code');
+      const $validateNewpassword = $('#validate-newpassword');
 
-      // retrieve username from localStorage
+      // retrieve username from localStorage - reset attempt
       const username = localStorage.getItem('recovery-username');
+      const code = $validateCode.val();
+      const password = $validateNewpassword.val();
 
-      let result = await User.resetPassword(code, username, password);
+      const result = await User.resetPassword(code, username, password);
 
       let shouldLogin = false;
       if (result.message === 'Successfully updated password.') {
@@ -460,11 +465,11 @@ export class DomView {
         result.message = `${result.message} Logging you in...`;
       }
       // flash message and clear after timeout
-      $('#validate-form-flash').text(result.message);
+      $validateFromFlash.text(result.message);
 
-      // clear old input
-      $('#validate-code').val('');
-      $('#validate-newpassword').val('');
+      // clear inputs
+      $validateCode.val('');
+      $validateNewpassword.val('');
 
       setTimeout(async () => {
         if (shouldLogin === true) {
@@ -483,9 +488,11 @@ export class DomView {
           await this.user.retrieveDetails();
           await this.checkForLoggedUser();
           await this.displayAllStories();
+
+          hideAllContainers();
         }
         // clear flash text
-        $('#validate-form-flash').text('');
+        $validateFromFlash.text('');
       }, 5000);
     });
 
