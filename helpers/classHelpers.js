@@ -1,3 +1,4 @@
+// output to console during AJAX errors
 function ajaxErrorOutput(jqXHR, textStatus, errorThrown) {
   console.log('jqXHR:');
   console.log(jqXHR);
@@ -7,6 +8,21 @@ function ajaxErrorOutput(jqXHR, textStatus, errorThrown) {
   console.log(errorThrown);
 }
 
-const API_BASE_URL = 'https://hack-or-snooze-api.herokuapp.com';
+// extracts hostname from url and return result
+function extractHostName(url) {
+  // turn url into jQuery anchor link obj
+  const $newLink = $('<a>', {
+    href: url
+  });
 
-export { API_BASE_URL, ajaxErrorOutput };
+  // extract hostname from jQuery anchor link obj
+  const hostname = $newLink
+    .prop('hostname')
+    .split('.')
+    .slice(-2)
+    .join('.');
+
+  return hostname;
+}
+
+export { ajaxErrorOutput, extractHostName };

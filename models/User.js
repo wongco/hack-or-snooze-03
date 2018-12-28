@@ -1,4 +1,5 @@
-import { ajaxErrorOutput, API_BASE_URL } from '../helpers/classHelpers.js';
+import { ajaxErrorOutput } from '../helpers/classHelpers.js';
+import { API_BASE_URL } from '../app/config.js';
 import { Story } from './Story.js';
 
 /* instance contains all User details including token, favorited and authored stories */
@@ -131,6 +132,15 @@ export class User {
       headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'DELETE',
+      error: ajaxErrorOutput
+    });
+  }
+
+  // make SMS recovery request to API
+  static async sendRecoveryCode(username) {
+    await $.ajax({
+      url: `${API_BASE_URL}/users/${username}/recovery`,
+      method: 'POST',
       error: ajaxErrorOutput
     });
   }

@@ -10,14 +10,18 @@ body {
 #new-form,
 #createuser-form,
 .element--hide,
-#updateprofile-form {
+#updateprofile-form,
+#nouserlogged-nav,
+#userlogged-nav,
+#resetpassword-formgroup {
   display: none;
 }
 
 #new-form,
 #stories,
 #createuser-form,
-#updateprofile-form {
+#updateprofile-form,
+#resetpassword-formgroup {
   background-color: #f6f6ef;
 }
 

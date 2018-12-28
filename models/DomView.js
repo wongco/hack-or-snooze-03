@@ -1,3 +1,4 @@
+import { extractHostName } from '../helpers/classHelpers.js';
 import { StoryList } from './StoryList.js';
 import { User } from './User.js';
 
@@ -34,7 +35,7 @@ export class DomView {
 
   // display a single story to dom container
   displaySingleStory(storyObj) {
-    const hostname = this.extractHostName(storyObj);
+    const hostname = extractHostName(storyObj.url);
 
     // determines if we should show delete button & edit button
     let deleteClassString = '';
@@ -110,23 +111,6 @@ export class DomView {
     );
   }
 
-  // extracts hostname from storyObj and return result
-  extractHostName(storyObj) {
-    // turn storyObj into jQuery anchor link obj
-    let $newLink = $('<a>', {
-      href: storyObj.url
-    });
-
-    // extract hostname from jQuery anchor link obj
-    let hostname = $newLink
-      .prop('hostname')
-      .split('.')
-      .slice(-2)
-      .join('.');
-
-    return hostname;
-  }
-
   // determine if story is one authored by the user (boolean)
   isUserOwnedStory(targetStoryId) {
     // if user is not logged in, return false
@@ -164,8 +148,10 @@ export class DomView {
   // submits login info from form to API
   async loginUserSubmission() {
     event.preventDefault();
-    const usernameInput = $('#username').val();
-    const passwordInput = $('#password').val();
+    const $username = $('#username');
+    const $password = $('#password');
+    const usernameInput = $username.val();
+    const passwordInput = $password.val();
 
     this.user.username = usernameInput;
 
@@ -176,11 +162,14 @@ export class DomView {
     this.storyList = await StoryList.getStories();
     await this.checkForLoggedUser();
     await this.displayAllStories();
+
+    // clear fields after successful login
+    $username.val('');
+    $password.val('');
   }
 
   // make a request to API to log user out
   async logUserOut() {
-    // delete Local Storage
     localStorage.clear();
     // delete all Local User Data
     this.user = new User();
@@ -200,75 +189,23 @@ export class DomView {
       // Show Logged-in User Specific Links
       $('#addStory').show();
       $('#favorites').show();
+      $('#nouserlogged-nav').hide();
+      $('#userlogged-nav').show();
 
       // stories login info into User instance, retrieve user info from API and render DOM elements
       this.user.loginToken = token;
       this.user.username = username;
       await this.user.retrieveDetails();
 
-      // Create DOM Elements in right side of nav-bar (Username/Profile Link & Logout)
-      const displayName = this.user.name;
-      $('#loginContainer').empty();
-      $('#loginContainer')
-        .append(
-          $('<span>').append(
-            $('<a>')
-              .text(displayName)
-              .addClass('mr-2')
-              .attr('href', 'javascript:void(0)')
-              .attr('id', 'profile')
-          )
-        )
-        .append(
-          $('<button>')
-            .text('Logout')
-            .addClass('btn btn-dark my-2 my-sm-0')
-            .attr('type', 'submit')
-            .on('click', await this.logUserOut.bind(this))
-        );
+      // Display Username as Link on Nav
+      $('#profile').text(username);
     } else {
-      // User token does not exist. Create sign in on right side of nav bar
-
-      // logic to hide user-required links on navbar
+      // User token does not exist. dynamically hide/show elements
       $('#addStory').hide();
       $('#favorites').hide();
-
-      $('#loginContainer').empty();
-      $('#loginContainer').append(
-        $('<form>')
-          .addClass('form-inline my-2 my-lg-0')
-          .append(
-            $('<input>')
-              .addClass('form-control mr-sm-2')
-              .attr('type', 'text')
-              .attr('placeholder', 'Username')
-              .attr('id', 'username')
-          )
-          .append(
-            $('<input>')
-              .addClass('form-control mr-sm-2')
-              .attr('type', 'password')
-              .attr('placeholder', 'Password')
-              .attr('id', 'password')
-          )
-          .append(
-            $('<button>')
-              .text('Login')
-              .addClass('btn btn-dark my-2 my-sm-0')
-              .attr('type', 'submit')
-              .on('click', await this.loginUserSubmission.bind(this))
-          )
-          .append(
-            $('<button>')
-              .text('Create User')
-              .addClass('btn btn-success my-2 my-sm-0 ml-1')
-              .attr('id', 'createuser-button')
-              .on('click', event => {
-                event.preventDefault();
-                $('#createuser-form').slideToggle();
-              })
-          )
-      );
+      $('#nouserlogged-nav').show();
+      $('#userlogged-nav').hide();
+      $('#profile').empty();
     }
   }
 
@@ -456,11 +393,46 @@ export class DomView {
       await this.submitUpdateUserProfile.bind(this)
     );
 
+    // event listener - log user in
+    $('#nouserlogged-nav').submit(await this.loginUserSubmission.bind(this));
+
+    // event listener - submit recovery
+    $('#reset-form').submit(async event => {
+      event.preventDefault();
+      const username = $('#recovery-username').val();
+
+      // send recovery request - async is fine
+      User.sendRecoveryCode(username);
+
+      // flash message and clear after timeout
+      $('#reset-form-flash').text('Recovery request sent!');
+      $('#recovery-username').val('');
+      setTimeout(() => {
+        $('#reset-form-flash').text('');
+      }, 5000);
+    });
+
     /*------------------ Click Events -------------------*/
 
     // event listener - show add story form
     $('#addStory').click(() => {
       $('#new-form').slideToggle();
+    });
+
+    // event listener -  toggle create user form
+    $('#createuser-button').click(event => {
+      event.preventDefault();
+      $('#createuser-form').slideToggle();
+    });
+
+    // event listener - log user in
+    $('#login-button').click(await this.loginUserSubmission.bind(this));
+
+    // event listener - log out user
+    $('#logout-button').click(await this.logUserOut.bind(this));
+
+    $('#reset-button').click(() => {
+      $('#resetpassword-formgroup').slideToggle();
     });
 
     // event listener - show hidden user profile modification form

@@ -1,4 +1,5 @@
-import { ajaxErrorOutput, API_BASE_URL } from '../helpers/classHelpers.js';
+import { ajaxErrorOutput } from '../helpers/classHelpers.js';
+import { API_BASE_URL } from '../app/config.js';
 import { Story } from './Story.js';
 
 /* instances contain a recent list a stories with methods to download, add & remove*/

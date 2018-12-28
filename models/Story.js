@@ -1,4 +1,5 @@
-import { ajaxErrorOutput, API_BASE_URL } from '../helpers/classHelpers.js';
+import { ajaxErrorOutput } from '../helpers/classHelpers.js';
+import { API_BASE_URL } from '../app/config.js';
 
 /* instance contains all story details including author, story id, url, and etc */
 export class Story {
