@@ -72,6 +72,7 @@ export class User {
       error: ajaxErrorOutput
     });
 
+    console.log(apiResponse.user);
     this.name = apiResponse.user.name;
     this.favorites = apiResponse.user.favorites;
     this.ownStories = apiResponse.user.stories;
@@ -113,7 +114,7 @@ export class User {
       user: userData
     };
 
-    $.ajax({
+    await $.ajax({
       headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'PATCH',

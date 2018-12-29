@@ -430,8 +430,8 @@ export class DomView {
 
     // event listener - submit update userprofile request to API
     $('#updateprofile-form').submit(async () => {
-      await this.submitUpdateUserProfile.call(this, event);
-      await this.displayAllStories.call(this);
+      await this.submitUpdateUserProfile(event);
+      await this.displayAllStories();
     });
 
     // event listener - log user in
