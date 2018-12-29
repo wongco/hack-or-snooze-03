@@ -429,9 +429,10 @@ export class DomView {
     $('#new-form').submit(await this.submitNewStory.bind(this));
 
     // event listener - submit update userprofile request to API
-    $('#updateprofile-form').submit(
-      await this.submitUpdateUserProfile.bind(this)
-    );
+    $('#updateprofile-form').submit(async () => {
+      await this.submitUpdateUserProfile.call(this, event);
+      await this.displayAllStories.call(this);
+    });
 
     // event listener - log user in
     $('#nouserlogged-nav').submit(await this.loginUserSubmission.bind(this));
@@ -455,6 +456,7 @@ export class DomView {
       }, 5000);
     });
 
+    // event listener to submit recovery code validation
     $('#validate-form').submit(async event => {
       event.preventDefault();
       const $validateFromFlash = $('#validate-form-flash');
