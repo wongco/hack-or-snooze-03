@@ -7,6 +7,7 @@ export class DomView {
   constructor() {
     this.storyList = [];
     this.user = new User();
+    this.view = 'all'; // test feature (state) 'all' or 'favs'
   }
 
   // calls getStories and displays most recent list of stories to DOM

@@ -22,6 +22,7 @@ export class User {
       }
     };
 
+    console.log(userDataObj);
     // if phone exists, add to payload
     if (phone) {
       userDataObj.user.phone = phone;

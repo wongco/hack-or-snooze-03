@@ -13,8 +13,8 @@
 
   <!-- Main body container -->
   <body class="container">
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark"">
+    <!-- add navbar formatting to see build in responsive button -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <span class="navbar-brand"> <b>Hack or Snooze</b> </span>
       <button
         class="navbar-toggler"
@@ -48,6 +48,8 @@
               type="text"
               placeholder="Username"
               id="username"
+              pattern=".{3,}"
+              maxlength="30"
             />
             <input
               required
@@ -55,6 +57,7 @@
               type="password"
               placeholder="Password"
               id="password"
+              maxlength="60"
             />
             <button
               class="btn btn-warning my-2 my-sm-0 ml-1 p-2"
@@ -100,6 +103,8 @@
                 id="recovery-username"
                 autocomplete="off"
                 placeholder = "username"
+                pattern=".{3,}"
+                maxlength="30"
               />
             </div>
             <button type="submit" class="btn btn-danger">submit</button>
@@ -119,6 +124,8 @@
                 id="validate-code"
                 autocomplete="off"
                 placeholder="6 digit code"
+                pattern=".{6,}"
+                maxlength="30"
               />
             </div>
           </div>
@@ -132,6 +139,8 @@
                 id="validate-newpassword"
                 autocomplete="off"
                 placeholder="new password"
+                pattern=".{6,}"
+                maxlength="60"
               />
             </div>
             <button type="submit" class="btn btn-danger">submit</button>
@@ -154,6 +163,8 @@
                 class="form-control"
                 id="title"
                 autocomplete="off"
+                maxlength="50"
+                placeholder="story title"
               />
             </div>
           </div>
@@ -166,6 +177,8 @@
                 class="form-control"
                 id="url"
                 autocomplete="off"
+                maxlength="200"
+                placeholder="http://www.yourfavoriteurl.com"
               />
             </div>
           </div>
@@ -194,6 +207,8 @@
                 id="create-displayname"
                 autocomplete="off"
                 placeholder="Jane Smith"
+                pattern=".{3,}"
+                maxlength="30"
               />
             </div>
           </div>
@@ -209,6 +224,8 @@
                 id="create-username"
                 autocomplete="off"
                 placeholder="username (3 letters or more)"
+                pattern=".{3,}"
+                maxlength="30"
               />
             </div>
           </div>
@@ -224,6 +241,8 @@
                 id="create-password"
                 autocomplete="off"
                 placeholder="password"
+                pattern=".{6,}"
+                maxlength="60"
               />
             </div>
           </div>
@@ -283,6 +302,9 @@
                 class="form-control"
                 id="updateprofile-displayname"
                 autocomplete="off"
+                pattern=".{3,}"
+                placeholder="Must be at least 3 characters."
+                maxlength="30"
               />
             </div>
           </div>
@@ -296,7 +318,9 @@
                 class="form-control"
                 id="updateprofile-password"
                 autocomplete="off"
-                placeholder="enter new password (optional)"
+                placeholder="enter new password (optional) - Min 6 chars"
+                pattern=".{6,}"
+                maxlength="60"
               />
               <!-- Potentially add another field to confirm password -->
             </div>
@@ -367,12 +391,18 @@
                   type="text"
                   class="form-control"
                   id="edit-title"
+                  maxlength="50"
                 />
               </div>
               <!-- URL Section -->
               <div class="form-group">
                 <label for="message-text" class="col-form-label">url</label>
-                <input required type="url" class="form-control" id="edit-url" />
+                <input
+                  required type="url"
+                  class="form-control"
+                  id="edit-url"
+                  maxlength="200"
+                />
               </div>
             </form>
           </div>
