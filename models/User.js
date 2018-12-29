@@ -22,7 +22,6 @@ export class User {
       }
     };
 
-    console.log(userDataObj);
     // if phone exists, add to payload
     if (phone) {
       userDataObj.user.phone = phone;
@@ -72,7 +71,6 @@ export class User {
       error: ajaxErrorOutput
     });
 
-    console.log(apiResponse.user);
     this.name = apiResponse.user.name;
     this.favorites = apiResponse.user.favorites;
     this.ownStories = apiResponse.user.stories;

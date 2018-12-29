@@ -7,20 +7,24 @@ export class DomView {
   constructor() {
     this.storyList = [];
     this.user = new User();
-    this.view = 'all'; // test feature (state) 'all' or 'favs'
+    this.state = 'all'; // test feature (state) 'all' or 'fav'
   }
 
   // calls getStories and displays most recent list of stories to DOM
   async displayAllStories() {
-    // delete all existing stories in parent container
-    $('#stories').empty();
+    // if app state is on 'all' stories, re-render entire page
+    if (this.state === 'all') {
+      // delete all existing stories in parent container
+      $('#stories').empty();
+      this.storyList = await StoryList.getStories();
 
-    this.storyList = await StoryList.getStories();
-
-    // we have the stories, iterate over stories array and display each story
-    this.storyList.stories.forEach(storyObj => {
-      this.displaySingleStory(storyObj);
-    });
+      // we have the stories, iterate over stories array and display each story
+      this.storyList.stories.forEach(storyObj => {
+        this.displaySingleStory(storyObj);
+      });
+    } else if (this.state === 'fav') {
+      this.displayFavoriteStories();
+    }
   }
 
   // display only user's favorite stories
@@ -148,6 +152,8 @@ export class DomView {
 
   // submits login info from form to API
   async loginUserSubmission(event) {
+    // set target state to 'all'
+    this.state = 'all';
     if (event) {
       event.preventDefault();
     }
@@ -179,6 +185,9 @@ export class DomView {
 
   // make a request to API to log user out
   async logUserOut() {
+    // set target state to 'all'
+    this.state = 'all';
+
     // empty user info in localStorage
     localStorage.clear();
 
@@ -226,6 +235,9 @@ export class DomView {
 
   // submits create user request to API
   async submitCreateUser(event) {
+    // set target state to 'all'
+    this.state = 'all';
+
     event.preventDefault();
     const $createDisplayName = $('#create-displayname');
     const $createUsername = $('#create-username');
@@ -361,12 +373,20 @@ export class DomView {
 
   // toggles display between favorite stories and all stories
   async toggleDisplayFavStories() {
+    hideAllContainers();
     const currentLinkText = $('#favorites').text();
     if (currentLinkText === 'favorites') {
       // display favorites and change link to all
       $('#favorites').text('all');
+
+      // set target state to 'fav'
+      this.state = 'fav';
+
       await this.displayFavoriteStories();
     } else if (currentLinkText === 'all') {
+      // set target state to 'all'
+      this.state = 'all';
+
       // display all stories and change link to favorites
       $('#favorites').text('favorites');
       await this.displayAllStories();
@@ -374,7 +394,7 @@ export class DomView {
   }
 
   // retrieve details on selected story and push to modal
-  retrieveStoryDetails(event) {
+  showStoryOnModal(event) {
     // event.relatedTarget grabs button element in story container
     const storyId = $(event.relatedTarget)
       .closest('li')
@@ -459,6 +479,9 @@ export class DomView {
     // event listener to submit recovery code validation
     $('#validate-form').submit(async event => {
       event.preventDefault();
+      // set target state to 'all'
+      this.state = 'all';
+
       const $validateFromFlash = $('#validate-form-flash');
       const $validateCode = $('#validate-code');
       const $validateNewpassword = $('#validate-newpassword');
@@ -558,7 +581,7 @@ export class DomView {
     // event listener for modal popup
     $('#storyModal').on(
       'show.bs.modal',
-      await this.retrieveStoryDetails.bind(this)
+      await this.showStoryOnModal.bind(this)
     );
 
     // event listener for submitting story modification
