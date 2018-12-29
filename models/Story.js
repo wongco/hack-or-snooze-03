@@ -22,6 +22,5 @@ export class Story {
       data: patchDataObj,
       error: ajaxErrorOutput
     });
-    await user.retrieveDetails();
   }
 }

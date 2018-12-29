@@ -10,7 +10,7 @@ $(function() {
     const domView = new DomView();
     // check for logged in user, then display all user stories
     await domView.checkForLoggedUser();
-    await domView.displayAllStories();
+    await domView.displayStories();
 
     // run all event listeners in domView instance
     await domView.createEventListeners();

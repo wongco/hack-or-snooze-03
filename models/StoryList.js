@@ -36,8 +36,6 @@ export class StoryList {
       data: postDataObj,
       error: ajaxErrorOutput
     });
-
-    await user.retrieveDetails();
   }
 
   // method to initiate api call to remove a story, then syncs api user details with local user
@@ -55,6 +53,5 @@ export class StoryList {
     );
     // removes story from local instance
     this.stories.splice(storyIndex, 1);
-    await user.retrieveDetails();
   }
 }

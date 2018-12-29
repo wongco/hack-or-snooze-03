@@ -14,7 +14,7 @@ export class User {
 
   // static function that send a create new user request to API and returns new user
   static async create({ username, password, name, phone }) {
-    let userDataObj = {
+    const userDataObj = {
       user: {
         name,
         username,
@@ -45,7 +45,7 @@ export class User {
 
   // method for API request to log the user in and retrieves user token
   async login(password) {
-    let loginDataObj = {
+    const loginDataObj = {
       user: {
         username: this.username,
         password

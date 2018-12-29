@@ -25,8 +25,30 @@ function extractHostName(url) {
   return hostname;
 }
 
+/** helper function to hide all form containers */
 function hideAllContainers() {
   $('.slide-container').slideUp();
 }
 
-export { ajaxErrorOutput, extractHostName, hideAllContainers };
+/** helper function to hide all form container minus the target */
+function selectiveHideContainers(idToLeaveShowing) {
+  const containers = [
+    'resetpassword-formgroup',
+    'new-form',
+    'createuser-form',
+    'updateprofile-form'
+  ];
+
+  containers.forEach(containerId => {
+    if (containerId !== idToLeaveShowing) {
+      $(`#${containerId}`).slideUp();
+    }
+  });
+}
+
+export {
+  ajaxErrorOutput,
+  extractHostName,
+  hideAllContainers,
+  selectiveHideContainers
+};

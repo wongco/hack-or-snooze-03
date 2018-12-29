@@ -1,4 +1,8 @@
-import { extractHostName, hideAllContainers } from '../helpers/classHelpers.js';
+import {
+  extractHostName,
+  hideAllContainers,
+  selectiveHideContainers
+} from '../helpers/classHelpers.js';
 import { StoryList } from './StoryList.js';
 import { User } from './User.js';
 
@@ -10,19 +14,22 @@ export class DomView {
     this.state = 'all'; // test feature (state) 'all' or 'fav'
   }
 
-  // calls getStories and displays most recent list of stories to DOM
-  async displayAllStories() {
-    // if app state is on 'all' stories, re-render entire page
+  // displays update to date list of stories to DOM
+  async displayStories() {
     if (this.state === 'all') {
+      // app state is on 'all' stories, re-render entire page
+
       // delete all existing stories in parent container
       $('#stories').empty();
+
       this.storyList = await StoryList.getStories();
 
-      // we have the stories, iterate over stories array and display each story
+      // iterate over stories and display each story
       this.storyList.stories.forEach(storyObj => {
         this.displaySingleStory(storyObj);
       });
     } else if (this.state === 'fav') {
+      // app state is on favorites, re-render only favorites
       this.displayFavoriteStories();
     }
   }
@@ -173,9 +180,8 @@ export class DomView {
     localStorage.setItem('username', this.user.username);
 
     await this.user.retrieveDetails();
-    this.storyList = await StoryList.getStories();
     await this.checkForLoggedUser();
-    await this.displayAllStories();
+    await this.displayStories();
 
     // clear fields after successful login & close open containers
     hideAllContainers();
@@ -195,9 +201,8 @@ export class DomView {
     // delete all Local User Data
     this.user = new User();
     // rerender full stories
-    this.storyList = await StoryList.getStories();
     await this.checkForLoggedUser();
-    await this.displayAllStories();
+    await this.displayStories();
   }
 
   // check if a user is currently logged in and then execute callback
@@ -258,7 +263,7 @@ export class DomView {
     localStorage.setItem('username', user.username);
 
     await this.checkForLoggedUser();
-    await this.displayAllStories();
+    await this.displayStories();
 
     // clear out values
     hideAllContainers();
@@ -286,7 +291,7 @@ export class DomView {
     // submit data to API for adding new story
     await this.storyList.addStory(this.user, storyDataObj);
     await this.user.retrieveDetails();
-    await this.displayAllStories();
+    await this.displayStories();
 
     // clear values and hide containers
     hideAllContainers();
@@ -328,6 +333,9 @@ export class DomView {
   // show form for viewing and updating user profile info
   showUserProfileForm(event) {
     event.preventDefault();
+    // hide all other containers
+    selectiveHideContainers('updateprofile-form');
+    // toggle specific container
     $('#updateprofile-form').slideToggle();
 
     // populate form with name, username
@@ -368,7 +376,8 @@ export class DomView {
 
     // make api call to delete a story, then rerender page w/ display all stories
     await this.storyList.removeStory(this.user, storyId);
-    await this.displayAllStories();
+    await this.user.retrieveDetails();
+    await this.displayStories();
   }
 
   // toggles display between favorite stories and all stories
@@ -389,7 +398,7 @@ export class DomView {
 
       // display all stories and change link to favorites
       $('#favorites').text('favorites');
-      await this.displayAllStories();
+      await this.displayStories();
     }
   }
 
@@ -436,7 +445,8 @@ export class DomView {
 
     // initiate call api ajax call, then re-render all stories to reflect change
     await this.user.ownStories[targetStoryIdx].update(this.user, storyData);
-    await this.displayAllStories();
+    await this.user.retrieveDetails();
+    await this.displayStories();
   }
 
   // createEventListeners for static DOM elements
@@ -451,7 +461,7 @@ export class DomView {
     // event listener - submit update userprofile request to API
     $('#updateprofile-form').submit(async () => {
       await this.submitUpdateUserProfile(event);
-      await this.displayAllStories();
+      await this.displayStories();
     });
 
     // event listener - log user in
@@ -521,7 +531,7 @@ export class DomView {
 
           await this.user.retrieveDetails();
           await this.checkForLoggedUser();
-          await this.displayAllStories();
+          await this.displayStories();
 
           hideAllContainers();
         }
@@ -534,12 +544,18 @@ export class DomView {
 
     // event listener - show add story form
     $('#addStory').click(() => {
+      // hide all other containers
+      selectiveHideContainers('new-form');
+      // toggle specific container
       $('#new-form').slideToggle();
     });
 
     // event listener -  toggle create user form
     $('#createuser-button').click(event => {
       event.preventDefault();
+      // hide all other containers
+      selectiveHideContainers('createuser-form');
+      // toggle specific container
       $('#createuser-form').slideToggle();
     });
 
@@ -551,6 +567,9 @@ export class DomView {
 
     // event lisetner - toggle recovery password form
     $('#reset-button').click(() => {
+      // hide all other containers
+      selectiveHideContainers('resetpassword-formgroup');
+      // toggle specific container
       $('#resetpassword-formgroup').slideToggle();
     });
 
