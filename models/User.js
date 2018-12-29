@@ -151,16 +151,11 @@ export class User {
       }
     };
 
-    let result;
-    try {
-      result = await $.ajax({
-        url: `${API_BASE_URL}/users/${username}/recovery`,
-        method: 'PATCH',
-        data: patchDataObj
-      });
-    } catch (error) {
-      result = error.responseJSON.error;
-    }
-    return result;
+    const result = await $.ajax({
+      url: `${API_BASE_URL}/users/${username}/recovery`,
+      method: 'PATCH',
+      data: patchDataObj
+    });
+    return result.message;
   }
 }

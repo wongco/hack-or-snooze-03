@@ -6,12 +6,14 @@
 
 body {
   margin: 8px;
+  position: relative;
 }
 
 /* Hide Elements during Initial Rendering */
 .element--hide,
 #nouserlogged-nav,
 #userlogged-nav,
+#navbar-flash,
 .slide-container {
   display: none;
 }
@@ -26,6 +28,18 @@ body {
 #favorites:active,
 #favorites:focus {
   text-decoration: none;
+}
+
+/* --------------------
+-----Flash Alert CSS-----
+-------------------- */
+#navbar-flash {
+  position: absolute;
+  top: 70px;
+  z-index: 1;
+  width: 400px;
+  left: 50%;
+  margin-left: -200px;
 }
 
 /* --------------------

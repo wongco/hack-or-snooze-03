@@ -1,8 +1,4 @@
-import {
-  extractHostName,
-  hideAllContainers,
-  selectiveHideContainers
-} from '../helpers/classHelpers.js';
+import { extractHostName } from '../helpers/classHelpers.js';
 import { StoryList } from './StoryList.js';
 import { User } from './User.js';
 
@@ -18,20 +14,21 @@ export class DomView {
   async displayStories() {
     if (this.state === 'all') {
       // app state is on 'all' stories, re-render entire page
-
-      // delete all existing stories in parent container
-      $('#stories').empty();
-
-      this.storyList = await StoryList.getStories();
-
-      // iterate over stories and display each story
-      this.storyList.stories.forEach(storyObj => {
-        this.displaySingleStory(storyObj);
-      });
+      await this.displayAllStories();
     } else if (this.state === 'fav') {
       // app state is on favorites, re-render only favorites
       this.displayFavoriteStories();
     }
+  }
+
+  // display all stories to DOM
+  async displayAllStories() {
+    $('#stories').empty();
+    this.storyList = await StoryList.getStories();
+    // iterate over stories and display each story
+    this.storyList.stories.forEach(storyObj => {
+      this.displaySingleStory(storyObj);
+    });
   }
 
   // display only user's favorite stories
@@ -50,30 +47,52 @@ export class DomView {
     const hostname = extractHostName(storyObj.url);
 
     // determines if we should show delete button & edit button
-    let deleteClassString = '';
-    let editClassString = '';
+    let delClass = '';
+    let editClass = '';
     if (this.isUserOwnedStory(storyObj.storyId)) {
       // user is author, show delete link
-      deleteClassString = 'delete--element';
-      editClassString = 'edit--elemenent';
+      delClass = 'delete--element';
+      editClass = 'edit--elemenent';
     } else {
       // user is not author, hide delete link
-      deleteClassString = 'delete--element element--hide';
-      editClassString = 'edit--elemenent element--hide';
+      delClass = 'delete--element element--hide';
+      editClass = 'edit--elemenent element--hide';
     }
 
     // determines what type of favorite star to display
-    let favoriteClassString;
+    let favClass;
     if (this.user.name === undefined) {
       // user is not logged in, hide favorites element
-      favoriteClassString = 'element--hide';
+      favClass = 'element--hide';
     } else if (this.isStoryInUserFavorites(storyObj.storyId)) {
       // user is logged in, story is in favorites, show solid star
-      favoriteClassString = 'fas fa-star px-1';
+      favClass = 'fas fa-star px-1';
     } else {
       // user is logged in, story is not in favorites, show outline of star
-      favoriteClassString = 'far fa-star px-1';
+      favClass = 'far fa-star px-1';
     }
+
+    // create jQuery call and send to DOM
+    this.sendStoryToDom(storyObj, hostname, favClass, editClass, delClass);
+  }
+
+  // helper function to build jQuery story and append to DOM
+  sendStoryToDom(storyObj, hostname, favClass, editClass, delClass) {
+    // Sample Reference Story Format
+    // <li id="234734908284093284092384092">
+    //   <div class="story--header">
+    //     <span class="far fa-star"></span>
+    //     <a target="_blank" href="https://visualgo.net/">Visualizing Algorithms</a>
+    //     <small>(visualgo.net)</small>
+    //   </div>
+    //   <div class="story--detail">
+    //     <span class="hidden">
+    //     <a href="#">Delete Story</a>
+    //     </span>
+    //     <span class="hackorsnoozedetails">
+    //     </span>
+    //   </div>
+    // </li>
 
     // render story element to dom container
     $('#stories').append(
@@ -82,7 +101,7 @@ export class DomView {
         .append(
           $('<div>')
             .addClass('story--header')
-            .append($('<span>').addClass(favoriteClassString))
+            .append($('<span>').addClass(favClass))
             .append(
               $('<a>')
                 .attr('target', '_blank')
@@ -95,7 +114,7 @@ export class DomView {
           $('<div>')
             .append(
               $('<span>')
-                .addClass(deleteClassString)
+                .addClass(delClass)
                 .append(
                   $('<span>')
                     .addClass('badge badge-primary mx-1')
@@ -104,7 +123,7 @@ export class DomView {
             )
             .append(
               $('<span>')
-                .addClass(editClassString)
+                .addClass(editClass)
                 .append(
                   $('<span>')
                     .addClass('badge badge-primary mx-1')
@@ -171,22 +190,25 @@ export class DomView {
 
     this.user.username = usernameInput;
 
-    // send API call to login, retrieve user details, get recent stories then
-    //     render logged in state, displayAllStories
-    await this.user.login(passwordInput);
+    // send API call to login, retrieve user details, render logged in state, displayAllStories
+    try {
+      await this.user.login(passwordInput);
 
-    // store items in local storage
-    localStorage.setItem('token', this.user.loginToken);
-    localStorage.setItem('username', this.user.username);
+      // store items in local storage
+      localStorage.setItem('token', this.user.loginToken);
+      localStorage.setItem('username', this.user.username);
 
-    await this.user.retrieveDetails();
-    await this.checkForLoggedUser();
-    await this.displayStories();
+      await this.user.retrieveDetails();
+      await this.checkForLoggedUser();
+      await this.displayStories();
 
-    // clear fields after successful login & close open containers
-    hideAllContainers();
-    $username.val('');
-    $password.val('');
+      // clear fields after successful login & close open containers
+      this.hideAllContainers();
+      $username.val('');
+      $password.val('');
+    } catch (error) {
+      this.flashMessage('Invalid Credentials.', 'danger');
+    }
   }
 
   // make a request to API to log user out
@@ -197,7 +219,7 @@ export class DomView {
     // empty user info in localStorage
     localStorage.clear();
 
-    hideAllContainers();
+    this.hideAllContainers();
     // delete all Local User Data
     this.user = new User();
     // rerender full stories
@@ -255,22 +277,30 @@ export class DomView {
     const password = $createPassword.val();
     const phone = $createPhone.val();
 
-    // submit data to API for user creation
-    const user = await User.create({ username, password, name, phone });
+    try {
+      // submit data to API for user creation
+      const user = await User.create({ username, password, name, phone });
 
-    // items to save to localStorage to check for logged in user
-    localStorage.setItem('token', user.loginToken);
-    localStorage.setItem('username', user.username);
+      // items to save to localStorage to check for logged in user
+      localStorage.setItem('token', user.loginToken);
+      localStorage.setItem('username', user.username);
 
-    await this.checkForLoggedUser();
-    await this.displayStories();
+      await this.checkForLoggedUser();
+      await this.displayStories();
 
-    // clear out values
-    hideAllContainers();
-    $createDisplayName.val('');
-    $createUsername.val('');
-    $createPassword.val('');
-    $createPhone.val('');
+      // clear out values
+      this.hideAllContainers();
+      $createDisplayName.val('');
+      $createUsername.val('');
+      $createPassword.val('');
+      $createPhone.val('');
+      this.flashMessage(
+        'Your account has been created! Logging in.',
+        'success'
+      );
+    } catch (error) {
+      this.flashMessage(error.responseJSON.error.message, 'danger');
+    }
   }
 
   // submits add new story request to API
@@ -288,15 +318,20 @@ export class DomView {
       url
     };
 
-    // submit data to API for adding new story
-    await this.storyList.addStory(this.user, storyDataObj);
-    await this.user.retrieveDetails();
-    await this.displayStories();
+    try {
+      // submit data to API for adding new story
+      await this.storyList.addStory(this.user, storyDataObj);
+      await this.user.retrieveDetails();
+      await this.displayStories();
 
-    // clear values and hide containers
-    hideAllContainers();
-    $('#title').val('');
-    $('#url').val('');
+      // clear values and hide containers
+      this.hideAllContainers();
+      $('#title').val('');
+      $('#url').val('');
+      this.flashMessage('Story added!', 'success');
+    } catch (error) {
+      this.flashMessage('Error adding story.', 'danger');
+    }
   }
 
   // submits create user profile modification request to API
@@ -314,19 +349,27 @@ export class DomView {
       name
     };
 
+    // if password data was passed
     if (password) {
       patchDataObj.password = password;
     }
 
-    // send api request, then hide user profile change form and update username in navbar
-    await this.user.update(patchDataObj);
-    $('#updateprofile-form').slideUp();
-    $('#profile').text(name);
+    try {
+      // send api request, then hide user profile change form and update username in navbar
+      await this.user.update(patchDataObj);
+      $('#updateprofile-form').slideUp();
+      $('#profile').text(name);
 
-    $updateProfileDisplayName.val('');
-    $updateProfilePassword.val('');
+      $updateProfileDisplayName.val('');
+      $updateProfilePassword.val('');
+      this.flashMessage('Profile successfully updated.', 'success');
+    } catch (error) {
+      this.flashMessage(
+        'Profile failed to update. Check your inputs.',
+        'danger'
+      );
+    }
 
-    // TODO future: if you show username/name details in the stories, have to re-render stories
     // TODO future: confirm old password to create new password on file
   }
 
@@ -334,7 +377,7 @@ export class DomView {
   showUserProfileForm(event) {
     event.preventDefault();
     // hide all other containers
-    selectiveHideContainers('updateprofile-form');
+    this.selectiveHideContainers('updateprofile-form');
     // toggle specific container
     $('#updateprofile-form').slideToggle();
 
@@ -382,7 +425,7 @@ export class DomView {
 
   // toggles display between favorite stories and all stories
   async toggleDisplayFavStories() {
-    hideAllContainers();
+    this.hideAllContainers();
     const currentLinkText = $('#favorites').text();
     if (currentLinkText === 'favorites') {
       // display favorites and change link to all
@@ -449,6 +492,118 @@ export class DomView {
     await this.displayStories();
   }
 
+  /** helper function to hide all form container minus the target */
+  selectiveHideContainers(idToLeaveShowing) {
+    const containers = [
+      'resetpassword-formgroup',
+      'new-form',
+      'createuser-form',
+      'updateprofile-form'
+    ];
+
+    containers.forEach(containerId => {
+      if (containerId !== idToLeaveShowing) {
+        $(`#${containerId}`).slideUp();
+      }
+    });
+  }
+
+  /** helper function to hide all form containers */
+  hideAllContainers() {
+    $('.slide-container').slideUp();
+  }
+
+  /** helper function to flash messages */
+  // example ('Logged in successfully!', 'success');
+  flashMessage(message, alertStyle) {
+    const $navbarFlash = $('#navbar-flash');
+    $navbarFlash
+      .text(message)
+      .addClass(`alert-${alertStyle}`)
+      .show();
+
+    // remove flash message after timeout
+    setTimeout(() => {
+      $navbarFlash
+        .text('')
+        .removeClass(`alert-${alertStyle}`)
+        .hide();
+    }, 3000);
+  }
+
+  /** helper to submit recovery request to API */
+  async submitRecoveryRequest(event) {
+    event.preventDefault();
+    const username = $('#recovery-username').val();
+
+    // add recovery-username to localStorage
+    localStorage.setItem('recovery-username', username);
+
+    // send recovery request - async is fine
+    User.sendRecoveryCode(username);
+
+    // flash message and clear after timeout
+    $('#reset-form-flash').text('Recovery request sent!');
+    $('#recovery-username').val('');
+    setTimeout(() => {
+      $('#reset-form-flash').text('');
+    }, 5000);
+  }
+
+  /** helper to submit recovery code validation to API */
+  async submitRecoveryCodeValidation(event) {
+    event.preventDefault();
+    // set target state to 'all'
+    this.state = 'all';
+
+    const $validateFromFlash = $('#validate-form-flash');
+    const $validateCode = $('#validate-code');
+    const $validateNewpassword = $('#validate-newpassword');
+
+    // retrieve username from localStorage - reset attempt
+    const username = localStorage.getItem('recovery-username');
+    const code = $validateCode.val();
+    const password = $validateNewpassword.val();
+
+    let message;
+    let shouldLogin = false;
+    try {
+      message = await User.resetPassword(code, username, password);
+      // clear recovery info per succcess
+      $validateCode.val('');
+      $validateNewpassword.val('');
+      localStorage.removeItem('recovery-username');
+      shouldLogin = true;
+      $validateFromFlash.text(`${message} Logging you in...`);
+    } catch (error) {
+      $validateFromFlash.text(error.responseJSON.error.message);
+    }
+
+    // do setup work to log user in
+    if (shouldLogin === true) {
+      // save username to localInstance and instance
+      localStorage.setItem('username', username);
+      this.user.username = username;
+
+      // save token to user instance and localStorage and get details
+      await this.user.login(password);
+      localStorage.setItem('token', this.user.loginToken);
+      await this.user.retrieveDetails();
+    }
+
+    // after delay, remove message and rerender page
+    setTimeout(async () => {
+      if (shouldLogin === true) {
+        $('#resetpassword-formgroup').slideUp();
+        await this.checkForLoggedUser();
+        await this.displayStories();
+        this.hideAllContainers();
+      }
+      // clear flash text
+      $validateFromFlash.text('');
+    }, 5000);
+  }
+
   // createEventListeners for static DOM elements
   async createEventListeners() {
     /*------------------ Submit Events -------------------*/
@@ -464,88 +619,23 @@ export class DomView {
       await this.displayStories();
     });
 
-    // event listener - log user in
+    // event listener - submit request to log user in
     $('#nouserlogged-nav').submit(await this.loginUserSubmission.bind(this));
 
-    // event listener - submit recovery
-    $('#reset-form').submit(async event => {
-      event.preventDefault();
-      const username = $('#recovery-username').val();
+    // event listener - submit recovery request to API
+    $('#reset-form').submit(await this.submitRecoveryRequest.bind(this));
 
-      // add recovery-username to localStorage
-      localStorage.setItem('recovery-username', username);
-
-      // send recovery request - async is fine
-      User.sendRecoveryCode(username);
-
-      // flash message and clear after timeout
-      $('#reset-form-flash').text('Recovery request sent!');
-      $('#recovery-username').val('');
-      setTimeout(() => {
-        $('#reset-form-flash').text('');
-      }, 5000);
-    });
-
-    // event listener to submit recovery code validation
-    $('#validate-form').submit(async event => {
-      event.preventDefault();
-      // set target state to 'all'
-      this.state = 'all';
-
-      const $validateFromFlash = $('#validate-form-flash');
-      const $validateCode = $('#validate-code');
-      const $validateNewpassword = $('#validate-newpassword');
-
-      // retrieve username from localStorage - reset attempt
-      const username = localStorage.getItem('recovery-username');
-      const code = $validateCode.val();
-      const password = $validateNewpassword.val();
-
-      const result = await User.resetPassword(code, username, password);
-
-      let shouldLogin = false;
-      if (result.message === 'Successfully updated password.') {
-        shouldLogin = true;
-        result.message = `${result.message} Logging you in...`;
-      }
-      // flash message and clear after timeout
-      $validateFromFlash.text(result.message);
-
-      // clear inputs
-      $validateCode.val('');
-      $validateNewpassword.val('');
-
-      setTimeout(async () => {
-        if (shouldLogin === true) {
-          $('#resetpassword-formgroup').slideUp();
-          // remove recovery-username from local storage
-          localStorage.removeItem('recovery-username');
-
-          // save username to localStorage and user instance
-          localStorage.setItem('username', username);
-          this.user.username = username;
-
-          // save token to user instance and localStorage
-          await this.user.login(password);
-          localStorage.setItem('token', this.user.loginToken);
-
-          await this.user.retrieveDetails();
-          await this.checkForLoggedUser();
-          await this.displayStories();
-
-          hideAllContainers();
-        }
-        // clear flash text
-        $validateFromFlash.text('');
-      }, 5000);
-    });
+    // event listener to submit recovery code validation to API
+    $('#validate-form').submit(
+      await this.submitRecoveryCodeValidation.bind(this)
+    );
 
     /*------------------ Click Events -------------------*/
 
     // event listener - show add story form
     $('#addStory').click(() => {
       // hide all other containers
-      selectiveHideContainers('new-form');
+      this.selectiveHideContainers('new-form');
       // toggle specific container
       $('#new-form').slideToggle();
     });
@@ -554,9 +644,17 @@ export class DomView {
     $('#createuser-button').click(event => {
       event.preventDefault();
       // hide all other containers
-      selectiveHideContainers('createuser-form');
+      this.selectiveHideContainers('createuser-form');
       // toggle specific container
       $('#createuser-form').slideToggle();
+    });
+
+    // event lisetner - toggle recovery password form
+    $('#reset-button').click(() => {
+      // hide all other containers
+      this.selectiveHideContainers('resetpassword-formgroup');
+      // toggle specific container
+      $('#resetpassword-formgroup').slideToggle();
     });
 
     // event listener - log user in
@@ -564,14 +662,6 @@ export class DomView {
 
     // event listener - log out user
     $('#logout-button').click(await this.logUserOut.bind(this));
-
-    // event lisetner - toggle recovery password form
-    $('#reset-button').click(() => {
-      // hide all other containers
-      selectiveHideContainers('resetpassword-formgroup');
-      // toggle specific container
-      $('#resetpassword-formgroup').slideToggle();
-    });
 
     // event listener - show hidden user profile modification form
     $('#loginContainer').on(

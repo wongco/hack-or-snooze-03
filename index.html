@@ -13,6 +13,7 @@
 
   <!-- Main body container -->
   <body class="container">
+    <div class="alert" id="navbar-flash"></div>
     <!-- add navbar formatting to see build in responsive button -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <span class="navbar-brand"> <b>Hack or Snooze</b> </span>
@@ -44,19 +45,22 @@
           <form class="form-inline my-2 my-lg-0" id="nouserlogged-nav">
             <input
               required
-              class="form-control mr-sm-2"
               type="text"
-              placeholder="Username"
+              class="form-control mr-sm-2"
               id="username"
+              autocomplete="off"
+              placeholder="username"
               pattern=".{3,}"
               maxlength="30"
             />
             <input
               required
-              class="form-control mr-sm-2"
               type="password"
-              placeholder="Password"
+              class="form-control mr-sm-2"
               id="password"
+              autocomplete="off"
+              placeholder="password"
+              pattern=".{6,}"
               maxlength="60"
             />
             <button
@@ -95,14 +99,14 @@
           <h4>Step 1: Submit request with username only</h4>
           <div class="form-group row">
             <label for="title" class="col-sm-2 form-label align-self-center">Username</label>
-            <div class="col-sm-3">
+            <div class="col-sm-4">
               <input
                 required
                 type="text"
                 class="form-control"
                 id="recovery-username"
                 autocomplete="off"
-                placeholder = "username"
+                placeholder="username (3 chars. or more)"
                 pattern=".{3,}"
                 maxlength="30"
               />
@@ -116,7 +120,7 @@
           <h4>Step 2: Type in recovery code and new password</h4>
           <div class="form-group row">
             <label for="title" class="col-sm-2 form-label align-self-center">SMS Code</label>
-            <div class="col-sm-3">
+            <div class="col-sm-4">
               <input
                 required
                 type="text"
@@ -125,20 +129,20 @@
                 autocomplete="off"
                 placeholder="6 digit code"
                 pattern=".{6,}"
-                maxlength="30"
+                maxlength="6"
               />
             </div>
           </div>
           <div class="form-group row">
             <label for="url" class="col-sm-2 form-label align-self-center">New Password</label>
-            <div class="col-sm-3">
+            <div class="col-sm-4">
               <input
                 required
                 type="password"
                 class="form-control"
                 id="validate-newpassword"
                 autocomplete="off"
-                placeholder="new password"
+                placeholder="new password (6 chars. or more)"
                 pattern=".{6,}"
                 maxlength="60"
               />
@@ -206,7 +210,7 @@
                 class="form-control"
                 id="create-displayname"
                 autocomplete="off"
-                placeholder="Jane Smith"
+                placeholder="Jane Smith (3 chars. or more)"
                 pattern=".{3,}"
                 maxlength="30"
               />
@@ -223,7 +227,7 @@
                 class="form-control"
                 id="create-username"
                 autocomplete="off"
-                placeholder="username (3 letters or more)"
+                placeholder="username (3 chars. or more)"
                 pattern=".{3,}"
                 maxlength="30"
               />
@@ -240,7 +244,7 @@
                 class="form-control"
                 id="create-password"
                 autocomplete="off"
-                placeholder="password"
+                placeholder="new password (6 chars. or more)"
                 pattern=".{6,}"
                 maxlength="60"
               />
@@ -256,9 +260,9 @@
                 id="create-phone"
                 name="create-phone"
                 class="form-control"
-                pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                pattern="[0-9]{10}"
                 autocomplete="off"
-                placeholder='(Optional): 123-456-7890'
+                placeholder='(Optional - USA Only): 4151231234'
               />
             </div>
           </div>
@@ -285,6 +289,7 @@
                 type="text"
                 class="form-control"
                 id="updateprofile-username"
+                placeholder="username (3 chars. or more)"
                 autocomplete="off"
               />
             </div>
@@ -303,7 +308,7 @@
                 id="updateprofile-displayname"
                 autocomplete="off"
                 pattern=".{3,}"
-                placeholder="Must be at least 3 characters."
+                placeholder="display name (3 chars. or more)"
                 maxlength="30"
               />
             </div>
@@ -318,7 +323,7 @@
                 class="form-control"
                 id="updateprofile-password"
                 autocomplete="off"
-                placeholder="enter new password (optional) - Min 6 chars"
+                placeholder="new password (6 chars. or more)"
                 pattern=".{6,}"
                 maxlength="60"
               />
@@ -337,23 +342,6 @@
     </div>
 
     <ol id="stories">
-      <!--
-        Sample Reference Story Format
-        <li id="234734908284093284092384092">
-          <div class="story--header">
-            <span class="far fa-star"></span>
-            <a target="_blank" href="https://visualgo.net/">Visualizing Algorithms</a>
-            <small>(visualgo.net)</small>
-          </div>
-          <div class="story--detail">
-            <span class="hidden">
-            <a href="#">Delete Story</a>
-            </span>
-            <span class="hackorsnoozedetails">
-            </span>
-          </div>
-        </li>
-      -->
     </ol>
 
     <!-- Modal -->
