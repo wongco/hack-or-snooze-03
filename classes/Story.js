@@ -15,12 +15,29 @@ export class Story {
   async update(user, storyData) {
     const patchDataObj = { story: storyData };
 
-    await $.ajax({
+    // demo request data - remove for production
+    console.log(
+      `Client - AJAX Target URL: ${API_BASE_URL}/stories/${this.storyId}`
+    );
+    console.log(
+      `Client - HTTP Header - JSON Web Token: Authorization: Bearer ${user.loginToken.slice(
+        0,
+        20
+      )}...`
+    );
+    console.log(`Client - AJAX Request JSON Body:`);
+    console.log(patchDataObj);
+
+    const apiResponse = await $.ajax({
       headers: { Authorization: `Bearer ${user.loginToken}` },
       url: `${API_BASE_URL}/stories/${this.storyId}`,
       method: 'PATCH',
       data: patchDataObj,
       error: ajaxErrorOutput
     });
+
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(apiResponse);
   }
 }

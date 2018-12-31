@@ -14,6 +14,9 @@ export class User {
 
   // static function that send a create new user request to API and returns new user
   static async create({ username, password, name, phone }) {
+    // demo request data - remove for production
+    console.log(`Client - AJAX Target URL: ${API_BASE_URL}/signup`);
+
     const userDataObj = {
       user: {
         name,
@@ -33,6 +36,10 @@ export class User {
       data: userDataObj,
       error: ajaxErrorOutput
     });
+
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(apiResponse);
 
     return new User(
       apiResponse.user.username,
@@ -84,24 +91,46 @@ export class User {
 
   // make an API request to add a story to the user’s favorites
   async addFavorite(storyId) {
-    await $.ajax({
+    // demo request data - remove for production
+    console.log(
+      `Client - AJAX Target URL: ${API_BASE_URL}/users/${
+        this.username
+      }/favorites/${storyId}`
+    );
+
+    const apiResponse = await $.ajax({
       headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
       method: 'POST',
       error: ajaxErrorOutput
     });
 
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(apiResponse);
+
     await this.retrieveDetails();
   }
 
   // make an API request to remove a story to the user’s favorites
   async removeFavorite(storyId) {
-    await $.ajax({
+    // demo request data - remove for production
+    console.log(
+      `Client - AJAX Target URL: ${API_BASE_URL}/users/${
+        this.username
+      }/favorites/${storyId}`
+    );
+
+    const apiResponse = await $.ajax({
       headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}/favorites/${storyId}`,
       method: 'DELETE',
       error: ajaxErrorOutput
     });
+
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(apiResponse);
 
     await this.retrieveDetails();
   }
@@ -112,13 +141,30 @@ export class User {
       user: userData
     };
 
-    await $.ajax({
+    // demo request data - remove for production
+    console.log(
+      `Client - AJAX Target URL: ${API_BASE_URL}/users/${this.username}`
+    );
+    console.log(
+      `Client - HTTP Header - JSON Web Token: Authorization: Bearer ${this.loginToken.slice(
+        0,
+        20
+      )}...`
+    );
+    console.log(`Client - AJAX Request JSON Body:`);
+    console.log(patchDataObj);
+
+    const apiResponse = await $.ajax({
       headers: { Authorization: `Bearer ${this.loginToken}` },
       url: `${API_BASE_URL}/users/${this.username}`,
       method: 'PATCH',
       data: patchDataObj,
       error: ajaxErrorOutput
     });
+
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(apiResponse);
 
     await this.retrieveDetails();
   }
@@ -135,11 +181,20 @@ export class User {
 
   // make SMS recovery request to API
   static async sendRecoveryCode(username) {
-    await $.ajax({
+    // demo request data - remove for production
+    console.log(
+      `Client - AJAX Target URL: ${API_BASE_URL}/users/${username}/recovery`
+    );
+
+    const apiResponse = await $.ajax({
       url: `${API_BASE_URL}/users/${username}/recovery`,
       method: 'POST',
       error: ajaxErrorOutput
     });
+
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(apiResponse);
   }
 
   // send sms recovery code, username, and new password to API
@@ -156,6 +211,11 @@ export class User {
       method: 'PATCH',
       data: patchDataObj
     });
+
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(result);
+
     return result.message;
   }
 }

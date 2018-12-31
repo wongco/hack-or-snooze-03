@@ -1,4 +1,4 @@
-import { DomView } from '../models/DomView.js';
+import { DomView } from '../classes/DomView.js';
 
 //Wait for DOM-Onload for jQuery
 $(function() {

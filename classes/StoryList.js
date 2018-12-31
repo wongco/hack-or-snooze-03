@@ -29,18 +29,38 @@ export class StoryList {
   async addStory(user, story) {
     const postDataObj = { story };
 
-    await $.ajax({
+    // demo request data - remove for production
+    console.log(`Client - AJAX Target URL: ${API_BASE_URL}/stories`);
+    console.log(
+      `Client - HTTP Header - JSON Web Token: Authorization: Bearer ${user.loginToken.slice(
+        0,
+        20
+      )}...`
+    );
+    console.log(`Client - AJAX Request JSON Body:`);
+    console.log(postDataObj);
+
+    const apiResponse = await $.ajax({
       headers: { Authorization: `Bearer ${user.loginToken}` },
       url: `${API_BASE_URL}/stories`,
       method: 'POST',
       data: postDataObj,
       error: ajaxErrorOutput
     });
+
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(apiResponse);
   }
 
   // method to initiate api call to remove a story, then syncs api user details with local user
   async removeStory(user, storyId) {
-    await $.ajax({
+    // demo request data - remove for production
+    console.log(`Client - AJAX Target URL: ${API_BASE_URL}/stories/${storyId}`);
+    console.log(`Client - HTTP Header - JSON Web Token:`);
+    console.log(`Authorization: Bearer ${user.loginToken.slice(0, 20)}...`);
+
+    const apiResponse = await $.ajax({
       headers: { Authorization: `Bearer ${user.loginToken}` },
       url: `${API_BASE_URL}/stories/${storyId}`,
       method: 'DELETE',
@@ -53,5 +73,9 @@ export class StoryList {
     );
     // removes story from local instance
     this.stories.splice(storyIndex, 1);
+
+    // demo response data - remove for production
+    console.log(`Server - Hack-or-snooze API Response JSON Body:`);
+    console.log(apiResponse);
   }
 }

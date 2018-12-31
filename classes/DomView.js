@@ -73,11 +73,11 @@ export class DomView {
     }
 
     // create jQuery call and send to DOM
-    this.sendStoryToDom(storyObj, hostname, favClass, editClass, delClass);
+    this.sendStoryToDom({ storyObj, hostname, favClass, editClass, delClass });
   }
 
   // helper function to build jQuery story and append to DOM
-  sendStoryToDom(storyObj, hostname, favClass, editClass, delClass) {
+  sendStoryToDom({ storyObj, hostname, favClass, editClass, delClass }) {
     // Sample Reference Story Format
     // <li id="234734908284093284092384092">
     //   <div class="story--header">
