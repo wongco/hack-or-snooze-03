@@ -1,3 +1,4 @@
+// import Application DomView Class Abstraction
 import { DomView } from '../classes/DomView.js';
 
 //Wait for DOM-Onload for jQuery
