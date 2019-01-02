@@ -605,13 +605,13 @@ export class DomView {
   }
 
   // createEventListeners for static DOM elements
-  async createEventListeners() {
+  createEventListeners() {
     /*------------------ Submit Events -------------------*/
     // event listener - submit user creation to API
-    $('#createuser-form').submit(await this.submitCreateUser.bind(this));
+    $('#createuser-form').submit(this.submitCreateUser.bind(this));
 
     // event listener - submit add story to API
-    $('#new-form').submit(await this.submitNewStory.bind(this));
+    $('#new-form').submit(this.submitNewStory.bind(this));
 
     // event listener - submit update userprofile request to API
     $('#updateprofile-form').submit(async () => {
@@ -620,15 +620,13 @@ export class DomView {
     });
 
     // event listener - submit request to log user in
-    $('#nouserlogged-nav').submit(await this.loginUserSubmission.bind(this));
+    $('#nouserlogged-nav').submit(this.loginUserSubmission.bind(this));
 
     // event listener - submit recovery request to API
-    $('#reset-form').submit(await this.submitRecoveryRequest.bind(this));
+    $('#reset-form').submit(this.submitRecoveryRequest.bind(this));
 
     // event listener to submit recovery code validation to API
-    $('#validate-form').submit(
-      await this.submitRecoveryCodeValidation.bind(this)
-    );
+    $('#validate-form').submit(this.submitRecoveryCodeValidation.bind(this));
 
     /*------------------ Click Events -------------------*/
 
@@ -658,10 +656,10 @@ export class DomView {
     });
 
     // event listener - log user in
-    $('#login-button').click(await this.loginUserSubmission.bind(this));
+    $('#login-button').click(this.loginUserSubmission.bind(this));
 
     // event listener - log out user
-    $('#logout-button').click(await this.logUserOut.bind(this));
+    $('#logout-button').click(this.logUserOut.bind(this));
 
     // event listener - show hidden user profile modification form
     $('#loginContainer').on(
@@ -674,26 +672,23 @@ export class DomView {
     $('#stories').on(
       'click',
       '.far, .fas',
-      await this.toggleStoryFavStatus.bind(this)
+      this.toggleStoryFavStatus.bind(this)
     );
 
     // event delegation - delete a story the user authored
     $('#stories').on(
       'click',
       '.delete--element',
-      await this.submitDeleteStory.bind(this)
+      this.submitDeleteStory.bind(this)
     );
 
     // event listener - display all stories or just favorites depending on current link
-    $('#favorites').click(await this.toggleDisplayFavStories.bind(this));
+    $('#favorites').click(this.toggleDisplayFavStories.bind(this));
 
     // event listener for modal popup
-    $('#storyModal').on(
-      'show.bs.modal',
-      await this.showStoryOnModal.bind(this)
-    );
+    $('#storyModal').on('show.bs.modal', this.showStoryOnModal.bind(this));
 
     // event listener for submitting story modification
-    $('#update-story').click(await this.submitStoryModification.bind(this));
+    $('#update-story').click(this.submitStoryModification.bind(this));
   }
 }

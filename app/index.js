@@ -14,6 +14,6 @@ $(function() {
     await domView.displayStories();
 
     // run all event listeners in domView instance
-    await domView.createEventListeners();
+    domView.createEventListeners();
   }
 });
