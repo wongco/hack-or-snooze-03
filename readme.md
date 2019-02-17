@@ -4,11 +4,10 @@ Hack-or-snooze is one example of a Front-end for the Hack-or-snooze-api. It is b
 
 ## Prerequisites
 
-* Fork Repo
-* Modify `app/config.js` to reflect the backend Hack-or-Snooze API instance you would like to use.
-	* `const API_BASE_URL = <URL to Hack-or-Snooze Backend>;`
-* Modify your repo as desired, host on a webprovider (works fine on github pages).
-
+- Fork Repo
+- Modify `app/config.js` to reflect the backend Hack-or-Snooze API instance you would like to use. \* `const API_BASE_URL = <URL to Hack-or-Snooze Backend>;`
+- Modify your repo as desired, host on a webprovider (works fine on github pages).
+- [hack-or-snooze Restful Backend](https://github.com/wongco/hack-or-snooze-api)
 
 ## Built With
 
